@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreditCard, Smartphone, Building2, Banknote, Check, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreditCard, Smartphone, Building2, Banknote, Check, Loader2, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface PaymentModalProps {
@@ -148,19 +149,56 @@ export const PaymentModal = ({ isOpen, onClose, planName, planPrice }: PaymentMo
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="upiId">UPI ID</Label>
-              <Input
-                id="upiId"
-                placeholder="yourname@upi"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                required
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enter your UPI ID (e.g., yourname@paytm, yourname@gpay)
-            </p>
+            <Tabs defaultValue="upi_id" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upi_id">UPI ID</TabsTrigger>
+                <TabsTrigger value="qr_code">
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Scan QR
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="upi_id" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="upiId">UPI ID</Label>
+                  <Input
+                    id="upiId"
+                    placeholder="yourname@upi"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Enter your UPI ID (e.g., yourname@paytm, yourname@gpay, yourname@ybl)
+                </p>
+              </TabsContent>
+              <TabsContent value="qr_code" className="mt-4">
+                <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/30 rounded-xl bg-primary/5">
+                  {/* QR Code Display */}
+                  <div className="w-48 h-48 bg-background rounded-lg p-3 shadow-lg mb-4">
+                    <div className="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmZiIvPjxnIGZpbGw9IiMwMDAiPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIyNSIgaGVpZ2h0PSIyNSIvPjxyZWN0IHg9IjciIHk9IjciIHdpZHRoPSIyMSIgaGVpZ2h0PSIyMSIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1Ii8+PHJlY3QgeD0iNzAiIHk9IjUiIHdpZHRoPSIyNSIgaGVpZ2h0PSIyNSIvPjxyZWN0IHg9IjcyIiB5PSI3IiB3aWR0aD0iMjEiIGhlaWdodD0iMjEiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSI3NSIgeT0iMTAiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIvPjxyZWN0IHg9IjUiIHk9IjcwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiLz48cmVjdCB4PSI3IiB5PSI3MiIgd2lkdGg9IjIxIiBoZWlnaHQ9IjIxIiBmaWxsPSIjZmZmIi8+PHJlY3QgeD0iMTAiIHk9Ijc1IiB3aWR0aD0iMTUiIGhlaWdodD0iMTUiLz48cmVjdCB4PSIzNSIgeT0iNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjQ1IiB5PSI1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1Ii8+PHJlY3QgeD0iNTUiIHk9IjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSIzNSIgeT0iMTUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI0NSIgeT0iMTUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI1NSIgeT0iMTUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSIzNSIgeT0iMjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI0NSIgeT0iMjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI1NSIgeT0iMjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI1IiB5PSIzNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjE1IiB5PSIzNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjI1IiB5PSIzNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjM1IiB5PSIzNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjQ1IiB5PSIzNSIgd2lkdGg9IjE1IiBoZWlnaHQ9IjE1Ii8+PHJlY3QgeD0iNjUiIHk9IjM1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1Ii8+PHJlY3QgeD0iNzUiIHk9IjM1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1Ii8+PHJlY3QgeD0iODUiIHk9IjM1IiB3aWR0aD0iNSIgaGVpZ2h0PSI1Ii8+PHJlY3QgeD0iNSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSIxNSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSIyNSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI2NSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI3NSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI4NSIgeT0iNDUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiLz48cmVjdCB4PSI1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjE1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjI1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjM1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjY1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijc1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijg1IiB5PSI1NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjM1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjQ1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjU1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjY1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijc1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijg1IiB5PSI2NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjM1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjQ1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjU1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjY1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijc1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijg1IiB5PSI3NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjM1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjQ1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjU1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9IjY1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijc1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjxyZWN0IHg9Ijg1IiB5PSI4NSIgd2lkdGg9IjUiIGhlaWdodD0iNSIvPjwvZz48L3N2Zz4=')] bg-contain rounded" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground mb-1">Scan to Pay</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Scan this QR code using any UPI app<br />
+                    (GPay, PhonePe, Paytm, etc.)
+                  </p>
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#5F259F] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">PP</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#00BAF2] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">PT</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#4285F4] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">GP</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#00C853] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">AM</span>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </motion.div>
         );
 
