@@ -54,26 +54,44 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an eco-product analyzer. Analyze the product in the image and provide sustainability metrics.
+            content: `You are an expert product recognition and eco-sustainability analyzer. Your PRIMARY task is to accurately identify the EXACT product shown in the image.
+
+CRITICAL INSTRUCTIONS FOR PRODUCT IDENTIFICATION:
+1. Look carefully at the packaging, brand name, logo, colors, and text on the product
+2. Identify the EXACT brand name (e.g., "Lay's", "Coca-Cola", "Dove", "Colgate")
+3. Identify the EXACT product type (e.g., "Classic Salted Potato Chips", "Cola Beverage", "Body Wash")
+4. If you see text on the packaging, READ IT CAREFULLY to identify the product
+5. Do NOT guess or assume - only report what you can clearly see
+6. If the image shows food packaging with a brand visible, identify that specific brand
 
 Your response MUST be valid JSON with this exact structure:
 {
-  "productName": "exact product name you see",
-  "category": "Food & Beverages" | "Personal Care" | "Household" | "Electronics" | "Clothing" | "Snacks",
+  "productName": "Brand Name - Product Type (e.g., Lay's Classic Salted Chips)",
+  "category": "Snacks" | "Food & Beverages" | "Personal Care" | "Household" | "Electronics" | "Clothing",
   "grade": "S" | "A" | "B" | "C" | "D" | "F",
   "carbonFootprint": number between 5-50 (kg CO2),
   "biodegradable": number between 10-100 (percentage),
   "suggestions": [
     {
-      "name": "eco-friendly alternative product name in same category",
+      "name": "eco-friendly alternative IN THE SAME CATEGORY",
       "grade": "S" | "A" | "B",
-      "amazonSearch": "search query for this product on amazon",
-      "flipkartSearch": "search query for this product on flipkart",
+      "amazonSearch": "exact search query for this specific product on amazon",
+      "flipkartSearch": "exact search query for this specific product on flipkart",
       "carbonFootprint": number (lower than original),
       "biodegradable": number (higher than original)
     }
   ]
 }
+
+SUGGESTION RULES - VERY IMPORTANT:
+- If the product is CHIPS (like Lay's, Pringles, Kurkure), suggest HEALTHIER/ECO-FRIENDLY CHIPS brands like:
+  * "Slurrp Farm Puffs" - organic baked snacks
+  * "Too Yumm Veggie Stix" - baked vegetable chips
+  * "Yoga Bar Chips" - protein chips
+- If the product is a BEVERAGE, suggest eco-friendly beverages
+- If the product is PERSONAL CARE, suggest natural/organic alternatives
+- NEVER suggest unrelated products (e.g., don't suggest blankets for chips)
+- All suggestions must be in the SAME product category
 
 Grading criteria:
 - S (Excellent): Carbon footprint < 8 kg, Biodegradable > 90%
@@ -83,13 +101,7 @@ Grading criteria:
 - D (Below Average): Carbon footprint < 35 kg, Biodegradable > 20%
 - F (Poor): Higher carbon footprint or lower biodegradable
 
-IMPORTANT: 
-1. Identify the EXACT product (brand name, type, etc.)
-2. For suggestions, provide 3 eco-friendly alternatives in the SAME category
-3. If it's chips (like Lays), suggest healthier/eco-friendly chips brands
-4. If it's a beverage, suggest eco-friendly beverages
-5. Make search queries specific so users find the exact suggested products
-6. Only respond with the JSON, no additional text`
+Only respond with the JSON, no additional text or markdown.`
           },
           {
             role: 'user',
