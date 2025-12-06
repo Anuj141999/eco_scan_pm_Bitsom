@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
@@ -8,78 +8,21 @@ import { Loader2, AlertCircle, ScanLine } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
-// Mock data for demonstration
-const mockProducts: Record<string, EcoScore> = {
-  default: {
-    grade: "B",
-    carbonFootprint: 18,
-    biodegradable: 65,
-    productName: "Generic Product",
-    category: "Consumer Goods",
-  },
-};
-
-const mockSuggestions: ProductSuggestion[] = [
-  {
-    name: "Eco-Friendly Alternative A",
-    grade: "S",
-    amazonLink: "https://www.amazon.in/s?k=eco+friendly+products",
-    flipkartLink: "https://www.flipkart.com/search?q=eco+friendly+products",
-    carbonFootprint: 5,
-    biodegradable: 95,
-  },
-  {
-    name: "Green Choice Product B",
-    grade: "A",
-    amazonLink: "https://www.amazon.in/s?k=sustainable+products",
-    flipkartLink: "https://www.flipkart.com/search?q=sustainable+products",
-    carbonFootprint: 8,
-    biodegradable: 88,
-  },
-  {
-    name: "Sustainable Option C",
-    grade: "A",
-    amazonLink: "https://www.amazon.in/s?k=green+products",
-    flipkartLink: "https://www.flipkart.com/search?q=green+products",
-    carbonFootprint: 10,
-    biodegradable: 82,
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Scanner = () => {
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
+  const { toast } = useToast();
   
   const [scanCount, setScanCount] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<EcoScore | null>(null);
+  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
 
   const maxScans = isDemo ? 3 : 30; // Demo gets 3, logged in users get based on plan
-
-  const generateRandomScore = (): EcoScore => {
-    const grades: EcoScore["grade"][] = ["S", "A", "B", "C", "D", "F"];
-    const gradeIndex = Math.floor(Math.random() * grades.length);
-    const grade = grades[gradeIndex];
-    
-    const carbonFootprint = Math.floor(Math.random() * 45) + 5;
-    const biodegradable = Math.floor(Math.random() * 70) + 20;
-    
-    const categories = ["Food & Beverages", "Personal Care", "Household", "Electronics", "Clothing"];
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    
-    const productNames = ["Organic Shampoo", "Bamboo Toothbrush", "Recycled Notebook", "Glass Container", "Cotton T-Shirt"];
-    const productName = productNames[Math.floor(Math.random() * productNames.length)];
-
-    return {
-      grade,
-      carbonFootprint,
-      biodegradable,
-      productName,
-      category,
-    };
-  };
 
   const handleImageCapture = async (imageData: string) => {
     if (scanCount >= maxScans) {
@@ -89,18 +32,76 @@ const Scanner = () => {
 
     setIsAnalyzing(true);
     setResult(null);
+    setSuggestions([]);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-product', {
+        body: { imageBase64: imageData }
+      });
 
-    const score = generateRandomScore();
-    setResult(score);
-    setScanCount((prev) => prev + 1);
-    setIsAnalyzing(false);
+      if (error) {
+        console.error('Error analyzing product:', error);
+        toast({
+          title: "Analysis Failed",
+          description: error.message || "Could not analyze the product. Please try again.",
+          variant: "destructive",
+        });
+        setIsAnalyzing(false);
+        return;
+      }
+
+      if (data.error) {
+        toast({
+          title: "Analysis Failed",
+          description: data.error,
+          variant: "destructive",
+        });
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Set the result from AI analysis
+      const score: EcoScore = {
+        grade: data.grade,
+        carbonFootprint: data.carbonFootprint,
+        biodegradable: data.biodegradable,
+        productName: data.productName,
+        category: data.category,
+      };
+
+      // Transform suggestions with proper links
+      const productSuggestions: ProductSuggestion[] = (data.suggestions || []).map((s: any) => ({
+        name: s.name,
+        grade: s.grade,
+        amazonLink: `https://www.amazon.in/s?k=${encodeURIComponent(s.amazonSearch || s.name)}`,
+        flipkartLink: `https://www.flipkart.com/search?q=${encodeURIComponent(s.flipkartSearch || s.name)}`,
+        carbonFootprint: s.carbonFootprint,
+        biodegradable: s.biodegradable,
+      }));
+
+      setResult(score);
+      setSuggestions(productSuggestions);
+      setScanCount((prev) => prev + 1);
+
+      toast({
+        title: "Product Analyzed!",
+        description: `Identified: ${data.productName}`,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const resetScan = () => {
     setResult(null);
+    setSuggestions([]);
     setShowLimitWarning(false);
   };
 
@@ -188,7 +189,7 @@ const Scanner = () => {
                 <Loader2 className="w-12 h-12 mx-auto mb-4 text-eco-leaf animate-spin" />
                 <h3 className="text-lg font-semibold mb-2">Analyzing Product...</h3>
                 <p className="text-sm text-muted-foreground">
-                  Calculating carbon footprint and sustainability metrics
+                  AI is identifying the product and calculating sustainability metrics
                 </p>
               </motion.div>
             ) : result ? (
@@ -200,7 +201,7 @@ const Scanner = () => {
               >
                 <EcoScoreCard
                   score={result}
-                  suggestions={mockSuggestions}
+                  suggestions={suggestions}
                   showSuggestions={!isDemo}
                 />
                 

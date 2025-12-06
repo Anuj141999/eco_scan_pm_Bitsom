@@ -1,0 +1,4 @@
+project_id = "upldrlhfpxdupuhxihrv"
+
+[functions.analyze-product]
+verify_jwt = false

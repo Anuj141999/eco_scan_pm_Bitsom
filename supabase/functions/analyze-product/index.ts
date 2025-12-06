@@ -1,0 +1,194 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface ProductAnalysis {
+  productName: string;
+  category: string;
+  grade: "S" | "A" | "B" | "C" | "D" | "F";
+  carbonFootprint: number;
+  biodegradable: number;
+  suggestions: {
+    name: string;
+    grade: "S" | "A" | "B";
+    amazonSearch: string;
+    flipkartSearch: string;
+    carbonFootprint: number;
+    biodegradable: number;
+  }[];
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { imageBase64 } = await req.json();
+    
+    if (!imageBase64) {
+      return new Response(
+        JSON.stringify({ error: 'Image data is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
+    }
+
+    console.log('Analyzing product image...');
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an eco-product analyzer. Analyze the product in the image and provide sustainability metrics.
+
+Your response MUST be valid JSON with this exact structure:
+{
+  "productName": "exact product name you see",
+  "category": "Food & Beverages" | "Personal Care" | "Household" | "Electronics" | "Clothing" | "Snacks",
+  "grade": "S" | "A" | "B" | "C" | "D" | "F",
+  "carbonFootprint": number between 5-50 (kg CO2),
+  "biodegradable": number between 10-100 (percentage),
+  "suggestions": [
+    {
+      "name": "eco-friendly alternative product name in same category",
+      "grade": "S" | "A" | "B",
+      "amazonSearch": "search query for this product on amazon",
+      "flipkartSearch": "search query for this product on flipkart",
+      "carbonFootprint": number (lower than original),
+      "biodegradable": number (higher than original)
+    }
+  ]
+}
+
+Grading criteria:
+- S (Excellent): Carbon footprint < 8 kg, Biodegradable > 90%
+- A (Great): Carbon footprint < 12 kg, Biodegradable > 80%
+- B (Good): Carbon footprint < 18 kg, Biodegradable > 60%
+- C (Average): Carbon footprint < 25 kg, Biodegradable > 40%
+- D (Below Average): Carbon footprint < 35 kg, Biodegradable > 20%
+- F (Poor): Higher carbon footprint or lower biodegradable
+
+IMPORTANT: 
+1. Identify the EXACT product (brand name, type, etc.)
+2. For suggestions, provide 3 eco-friendly alternatives in the SAME category
+3. If it's chips (like Lays), suggest healthier/eco-friendly chips brands
+4. If it's a beverage, suggest eco-friendly beverages
+5. Make search queries specific so users find the exact suggested products
+6. Only respond with the JSON, no additional text`
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Analyze this product image and provide eco-sustainability metrics with relevant alternative suggestions in the same product category.'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
+                }
+              }
+            ]
+          }
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI Gateway error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted. Please add more credits.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    
+    console.log('AI Response:', content);
+
+    if (!content) {
+      throw new Error('No response from AI');
+    }
+
+    // Parse the JSON response
+    let analysis: ProductAnalysis;
+    try {
+      // Clean the response - remove markdown code blocks if present
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.slice(7);
+      }
+      if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.slice(3);
+      }
+      if (cleanContent.endsWith('```')) {
+        cleanContent = cleanContent.slice(0, -3);
+      }
+      
+      analysis = JSON.parse(cleanContent.trim());
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', parseError);
+      throw new Error('Failed to parse product analysis');
+    }
+
+    // Validate and ensure proper structure
+    const result: ProductAnalysis = {
+      productName: analysis.productName || 'Unknown Product',
+      category: analysis.category || 'Consumer Goods',
+      grade: analysis.grade || 'C',
+      carbonFootprint: Math.round(analysis.carbonFootprint) || 20,
+      biodegradable: Math.round(analysis.biodegradable) || 50,
+      suggestions: (analysis.suggestions || []).slice(0, 3).map(s => ({
+        name: s.name,
+        grade: s.grade || 'A',
+        amazonSearch: s.amazonSearch || s.name,
+        flipkartSearch: s.flipkartSearch || s.name,
+        carbonFootprint: Math.round(s.carbonFootprint) || 10,
+        biodegradable: Math.round(s.biodegradable) || 85,
+      })),
+    };
+
+    console.log('Analysis result:', result);
+
+    return new Response(
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error analyzing product:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to analyze product' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
