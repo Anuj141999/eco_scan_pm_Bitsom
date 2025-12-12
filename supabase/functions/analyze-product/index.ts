@@ -5,6 +5,43 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiting (resets on cold start, but provides basic protection)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per IP
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
+
+function isRateLimited(clientIP: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(clientIP);
+  
+  // Clean up old entries periodically
+  if (rateLimitMap.size > 1000) {
+    for (const [ip, data] of rateLimitMap.entries()) {
+      if (now > data.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+  }
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+  
+  entry.count++;
+  return false;
+}
+
 interface ProductAnalysis {
   productName: string;
   category: string;
@@ -27,11 +64,41 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    if (isRateLimited(clientIP)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please wait a moment and try again.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
+      );
+    }
+
     const { imageBase64 } = await req.json();
     
+    // Input validation: check if imageBase64 exists and has reasonable size
     if (!imageBase64) {
       return new Response(
         JSON.stringify({ error: 'Image data is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate base64 size (max ~10MB encoded, which is ~7.5MB actual)
+    const MAX_BASE64_SIZE = 10 * 1024 * 1024;
+    if (imageBase64.length > MAX_BASE64_SIZE) {
+      return new Response(
+        JSON.stringify({ error: 'Image too large. Please upload an image under 7MB.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Basic base64/data URI format validation
+    const isDataUri = imageBase64.startsWith('data:image/');
+    const isPlainBase64 = /^[A-Za-z0-9+/]+=*$/.test(imageBase64.slice(0, 100));
+    if (!isDataUri && !isPlainBase64) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid image format. Please upload a valid image.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
