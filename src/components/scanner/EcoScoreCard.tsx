@@ -159,24 +159,28 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <a
+                        href={product.amazonLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex-1"
-                        onClick={() => window.open(product.amazonLink, "_blank")}
                       >
-                        Amazon
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                        <Button variant="outline" size="sm" className="w-full">
+                          Amazon
+                          <ExternalLink className="w-3 h-3" />
+                        </Button>
+                      </a>
+                      <a
+                        href={product.flipkartLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex-1"
-                        onClick={() => window.open(product.flipkartLink, "_blank")}
                       >
-                        Flipkart
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Flipkart
+                          <ExternalLink className="w-3 h-3" />
+                        </Button>
+                      </a>
                     </div>
                   </CardContent>
                 </Card>
