@@ -50,9 +50,9 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
         <Card className="overflow-hidden">
           <CardHeader className={`${gradeStyle.bg} ${gradeStyle.text} py-8`}>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90 mb-1">{score.category}</p>
-                <CardTitle className="text-2xl">{score.productName}</CardTitle>
+              <div className="max-w-[200px] md:max-w-xs">
+                <p className="text-xs opacity-75 mb-1 uppercase tracking-wide">{score.category}</p>
+                <p className="text-lg font-normal opacity-95 leading-snug">{score.productName}</p>
               </div>
               <div className="text-right">
                 <div className="text-6xl font-bold">{score.grade}</div>
