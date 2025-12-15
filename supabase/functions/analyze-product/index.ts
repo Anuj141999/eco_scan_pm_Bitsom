@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,6 +65,52 @@ serve(async (req) => {
   }
 
   try {
+    // Check for demo mode in request body first (parsed later)
+    const body = await req.json();
+    const { imageBase64, isDemo = false } = body;
+
+    // Authentication check - required for non-demo requests
+    const authHeader = req.headers.get('Authorization');
+    let userId: string | null = null;
+
+    if (!isDemo) {
+      if (!authHeader) {
+        console.warn('No authorization header provided for authenticated request');
+        return new Response(
+          JSON.stringify({ error: 'Authentication required. Please log in to scan products.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify the JWT token
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Supabase configuration missing');
+        throw new Error('Server configuration error');
+      }
+
+      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+      
+      if (authError || !user) {
+        console.warn('Invalid authentication token:', authError?.message);
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication. Please log in again.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userId = user.id;
+      console.log(`Authenticated request from user: ${userId}`);
+    } else {
+      console.log('Demo mode request - limited features');
+    }
+
     // Rate limiting check
     const clientIP = getClientIP(req);
     if (isRateLimited(clientIP)) {
@@ -74,8 +121,6 @@ serve(async (req) => {
       );
     }
 
-    const { imageBase64 } = await req.json();
-    
     // Input validation: check if imageBase64 exists and has reasonable size
     if (!imageBase64) {
       return new Response(
@@ -212,7 +257,7 @@ Only respond with the JSON, no additional text or markdown.`
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('AI Response:', content);
+    console.log('AI Response received');
 
     if (!content) {
       throw new Error('No response from AI');
@@ -246,7 +291,8 @@ Only respond with the JSON, no additional text or markdown.`
       grade: analysis.grade || 'C',
       carbonFootprint: Math.round(analysis.carbonFootprint) || 20,
       biodegradable: Math.round(analysis.biodegradable) || 50,
-      suggestions: (analysis.suggestions || []).slice(0, 3).map(s => ({
+      // For demo mode, don't include suggestions
+      suggestions: isDemo ? [] : (analysis.suggestions || []).slice(0, 3).map(s => ({
         name: s.name,
         grade: s.grade || 'A',
         amazonSearch: s.amazonSearch || s.name,
@@ -256,7 +302,7 @@ Only respond with the JSON, no additional text or markdown.`
       })),
     };
 
-    console.log('Analysis result:', result);
+    console.log('Analysis completed for:', result.productName);
 
     return new Response(
       JSON.stringify(result),
@@ -266,7 +312,7 @@ Only respond with the JSON, no additional text or markdown.`
   } catch (error) {
     console.error('Error analyzing product:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to analyze product' }),
+      JSON.stringify({ error: 'Failed to analyze product. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
