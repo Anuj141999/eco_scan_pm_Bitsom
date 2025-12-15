@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scan_history: {
+        Row: {
+          biodegradable: number | null
+          carbon_footprint: number | null
+          category: string | null
+          created_at: string
+          grade: string | null
+          id: string
+          is_demo: boolean | null
+          product_name: string
+          user_id: string
+        }
+        Insert: {
+          biodegradable?: number | null
+          carbon_footprint?: number | null
+          category?: string | null
+          created_at?: string
+          grade?: string | null
+          id?: string
+          is_demo?: boolean | null
+          product_name: string
+          user_id: string
+        }
+        Update: {
+          biodegradable?: number | null
+          carbon_footprint?: number | null
+          category?: string | null
+          created_at?: string
+          grade?: string | null
+          id?: string
+          is_demo?: boolean | null
+          product_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
