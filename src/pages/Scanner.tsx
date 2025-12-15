@@ -69,7 +69,7 @@ const Scanner = () => {
         category: data.category,
       };
 
-      // Transform suggestions with proper links
+      // Transform suggestions with proper links and images
       const productSuggestions: ProductSuggestion[] = (data.suggestions || []).map((s: any) => ({
         name: s.name,
         grade: s.grade,
@@ -77,6 +77,7 @@ const Scanner = () => {
         flipkartLink: `https://www.flipkart.com/search?q=${encodeURIComponent(s.flipkartSearch || s.name)}`,
         carbonFootprint: s.carbonFootprint,
         biodegradable: s.biodegradable,
+        imageUrl: s.imageUrl,
       }));
 
       setResult(score);
