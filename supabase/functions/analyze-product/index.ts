@@ -56,7 +56,43 @@ interface ProductAnalysis {
     flipkartSearch: string;
     carbonFootprint: number;
     biodegradable: number;
+    imageUrl?: string;
   }[];
+}
+
+// Function to generate product image using AI
+async function generateProductImage(productName: string, apiKey: string): Promise<string | null> {
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image',
+        messages: [
+          {
+            role: 'user',
+            content: `Generate a clean, professional product photo of: ${productName}. Show the product packaging clearly on a white background, like an e-commerce product image. Make it look realistic and appealing.`
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Image generation failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    return imageUrl || null;
+  } catch (error) {
+    console.error('Error generating image:', error);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -306,6 +342,28 @@ Only respond with the JSON, no additional text or markdown.`
       throw new Error('Failed to parse product analysis');
     }
 
+    // Build suggestions with images (only for non-demo mode)
+    let suggestionsWithImages: ProductAnalysis['suggestions'] = [];
+    
+    if (!isDemo && analysis.suggestions && analysis.suggestions.length > 0) {
+      console.log('Generating images for suggestions...');
+      const suggestionPromises = (analysis.suggestions || []).slice(0, 3).map(async (s) => {
+        const imageUrl = await generateProductImage(s.name, LOVABLE_API_KEY);
+        return {
+          name: s.name,
+          grade: s.grade || 'A' as "S" | "A" | "B",
+          amazonSearch: s.amazonSearch || s.name,
+          flipkartSearch: s.flipkartSearch || s.name,
+          carbonFootprint: Math.round(s.carbonFootprint) || 10,
+          biodegradable: Math.round(s.biodegradable) || 85,
+          imageUrl: imageUrl || undefined,
+        };
+      });
+      
+      suggestionsWithImages = await Promise.all(suggestionPromises);
+      console.log('Generated images for', suggestionsWithImages.filter(s => s.imageUrl).length, 'suggestions');
+    }
+
     // Validate and ensure proper structure
     const result: ProductAnalysis = {
       productName: analysis.productName || 'Unknown Product',
@@ -313,15 +371,7 @@ Only respond with the JSON, no additional text or markdown.`
       grade: analysis.grade || 'C',
       carbonFootprint: Math.round(analysis.carbonFootprint) || 20,
       biodegradable: Math.round(analysis.biodegradable) || 50,
-      // For demo mode, don't include suggestions
-      suggestions: isDemo ? [] : (analysis.suggestions || []).slice(0, 3).map(s => ({
-        name: s.name,
-        grade: s.grade || 'A',
-        amazonSearch: s.amazonSearch || s.name,
-        flipkartSearch: s.flipkartSearch || s.name,
-        carbonFootprint: Math.round(s.carbonFootprint) || 10,
-        biodegradable: Math.round(s.biodegradable) || 85,
-      })),
+      suggestions: suggestionsWithImages,
     };
 
     console.log('Analysis completed for:', result.productName);

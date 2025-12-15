@@ -18,6 +18,7 @@ export interface ProductSuggestion {
   flipkartLink: string;
   carbonFootprint: number;
   biodegradable: number;
+  imageUrl?: string;
 }
 
 interface EcoScoreCardProps {
@@ -144,19 +145,34 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
               >
-                <Card className="hover:shadow-eco transition-shadow">
+                <Card className="hover:shadow-eco transition-shadow overflow-hidden">
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold">{product.name}</h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{product.carbonFootprint} kg CO₂</span>
-                          <span>{product.biodegradable}% biodegradable</span>
+                    <div className="flex gap-4 mb-3">
+                      {/* Product Image */}
+                      {product.imageUrl && (
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
                         </div>
+                      )}
+                      <div className="flex-1 flex items-start justify-between">
+                        <div>
+                          <h4 className="font-semibold">{product.name}</h4>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                            <span>{product.carbonFootprint} kg CO₂</span>
+                            <span>{product.biodegradable}% biodegradable</span>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-bold ${gradeColors[product.grade].bg} ${gradeColors[product.grade].text}`}>
+                          {product.grade}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-bold ${gradeColors[product.grade].bg} ${gradeColors[product.grade].text}`}>
-                        {product.grade}
-                      </span>
                     </div>
                     <div className="flex gap-2">
                       <a
