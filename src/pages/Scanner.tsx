@@ -36,7 +36,7 @@ const Scanner = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
-        body: { imageBase64: imageData }
+        body: { imageBase64: imageData, isDemo }
       });
 
       if (error) {
