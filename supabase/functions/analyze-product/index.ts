@@ -166,26 +166,48 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert product recognition and eco-sustainability analyzer. Your PRIMARY task is to accurately identify the EXACT product shown in the image.
+            content: `You are an expert product recognition and eco-sustainability analyzer with exceptional visual analysis skills. Your PRIMARY task is to accurately identify the EXACT product shown in the image with HIGH PRECISION.
 
 CRITICAL INSTRUCTIONS FOR PRODUCT IDENTIFICATION:
-1. Look carefully at the packaging, brand name, logo, colors, and text on the product
-2. Identify the EXACT brand name (e.g., "Lay's", "Coca-Cola", "Dove", "Colgate")
-3. Identify the EXACT product type (e.g., "Classic Salted Potato Chips", "Cola Beverage", "Body Wash")
-4. If you see text on the packaging, READ IT CAREFULLY to identify the product
-5. Do NOT guess or assume - only report what you can clearly see
-6. If the image shows food packaging with a brand visible, identify that specific brand
+1. SCAN THE ENTIRE IMAGE carefully - look for:
+   - Brand name/logo (usually prominently displayed)
+   - Product name text on packaging
+   - Taglines, flavor variants, or product descriptions
+   - Package design, colors, and distinctive features
+   
+2. BRAND IDENTIFICATION PRIORITY:
+   - READ ALL visible text on the packaging character by character
+   - Look for brand logos (Nike swoosh, Apple logo, Lay's wave, Coca-Cola script, etc.)
+   - Check corners, edges, and small print for brand names
+   - If multiple brands appear (e.g., parent company + product brand), use the product brand
+   
+3. PRODUCT NAME FORMAT - Be specific and detailed:
+   - CORRECT: "Lay's Classic Salted Potato Chips 52g"
+   - CORRECT: "Coca-Cola Original Taste 330ml Can"
+   - CORRECT: "Dove Deeply Nourishing Body Wash 500ml"
+   - WRONG: "Potato Chips" (too generic)
+   - WRONG: "Unbranded Cola" (should identify brand)
+   - WRONG: "Body Wash" (missing brand and variant)
+
+4. IF BRAND IS NOT CLEARLY VISIBLE:
+   - Describe the product type precisely with visible characteristics
+   - Example: "Orange-flavored Corn Puffs Snack (Brand Not Visible)"
+   - Never use "Unbranded" or "Standard" - describe what you actually see
+
+5. CONFIDENCE CHECK:
+   - Only report brands you can CLEARLY read or recognize from logos
+   - If image is blurry or text is unreadable, describe the product category and visible features
 
 Your response MUST be valid JSON with this exact structure:
 {
-  "productName": "Brand Name - Product Type (e.g., Lay's Classic Salted Chips)",
+  "productName": "Brand Name - Full Product Name with Variant/Size (e.g., Lay's Classic Salted Chips 52g)",
   "category": "Snacks" | "Food & Beverages" | "Personal Care" | "Household" | "Electronics" | "Clothing",
   "grade": "S" | "A" | "B" | "C" | "D" | "F",
   "carbonFootprint": number between 5-50 (kg CO2),
   "biodegradable": number between 10-100 (percentage),
   "suggestions": [
     {
-      "name": "eco-friendly alternative IN THE SAME CATEGORY",
+      "name": "eco-friendly alternative IN THE SAME CATEGORY with full product name",
       "grade": "S" | "A" | "B",
       "amazonSearch": "exact search query for this specific product on amazon",
       "flipkartSearch": "exact search query for this specific product on flipkart",
@@ -195,15 +217,15 @@ Your response MUST be valid JSON with this exact structure:
   ]
 }
 
-SUGGESTION RULES - VERY IMPORTANT:
-- If the product is CHIPS (like Lay's, Pringles, Kurkure), suggest HEALTHIER/ECO-FRIENDLY CHIPS brands like:
-  * "Slurrp Farm Puffs" - organic baked snacks
-  * "Too Yumm Veggie Stix" - baked vegetable chips
-  * "Yoga Bar Chips" - protein chips
-- If the product is a BEVERAGE, suggest eco-friendly beverages
-- If the product is PERSONAL CARE, suggest natural/organic alternatives
-- NEVER suggest unrelated products (e.g., don't suggest blankets for chips)
-- All suggestions must be in the SAME product category
+SUGGESTION RULES - CRITICAL:
+- Match the EXACT product category (chips → chips, soda → soda, shampoo → shampoo)
+- Suggest REAL eco-friendly brands that exist:
+  * Chips: "Slurrp Farm Millet Puffs", "Too Yumm Veggie Stix", "Yoga Bar Protein Chips"
+  * Beverages: "Paper Boat Aam Panna", "Raw Pressery Cold Pressed Juice"
+  * Personal Care: "Mamaearth", "WOW Skin Science", "Khadi Natural"
+  * Household: "Beco Eco-Friendly", "The Better Home", "Purecosheet"
+- Include product size/variant in suggestion names
+- NEVER suggest unrelated categories
 
 Grading criteria:
 - S (Excellent): Carbon footprint < 8 kg, Biodegradable > 90%
