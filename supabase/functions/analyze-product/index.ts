@@ -160,7 +160,7 @@ serve(async (req) => {
     }
 
     // Input validation: check if imageBase64 exists and has reasonable size
-    if (!imageBase64) {
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Image data is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -176,14 +176,42 @@ serve(async (req) => {
       );
     }
 
-    // Basic base64/data URI format validation
-    const isDataUri = imageBase64.startsWith('data:image/');
-    const isPlainBase64 = /^[A-Za-z0-9+/]+=*$/.test(imageBase64.slice(0, 100));
-    if (!isDataUri && !isPlainBase64) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid image format. Please upload a valid image.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // MIME type whitelist for security
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    
+    // Validate data URI format with strict MIME type checking
+    const dataUriMatch = imageBase64.match(/^data:(image\/[a-z]+);base64,/i);
+    const isDataUri = !!dataUriMatch;
+    
+    if (isDataUri) {
+      const mimeType = dataUriMatch[1].toLowerCase();
+      if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+        console.warn(`Rejected MIME type: ${mimeType}`);
+        return new Response(
+          JSON.stringify({ error: 'Invalid image format. Supported formats: JPEG, PNG, WebP, GIF.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Extract and validate the base64 portion
+      const base64Data = imageBase64.slice(dataUriMatch[0].length);
+      // Validate entire base64 string structure (not just first 100 chars)
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Data)) {
+        console.warn('Invalid base64 structure in data URI');
+        return new Response(
+          JSON.stringify({ error: 'Invalid image data encoding.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else {
+      // Plain base64 - validate entire string structure
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(imageBase64)) {
+        console.warn('Invalid base64 structure');
+        return new Response(
+          JSON.stringify({ error: 'Invalid image format. Please upload a valid image.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -296,22 +324,24 @@ Only respond with the JSON, no additional text or markdown.`
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      // Log detailed error server-side only for debugging
+      console.error('Analysis service error [internal]:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          JSON.stringify({ error: 'Service is busy. Please try again in a few moments.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add more credits.' }),
+          JSON.stringify({ error: 'Service temporarily unavailable. Please try again later.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      throw new Error(`AI Gateway error: ${response.status}`);
+      // Generic error for all other cases - no internal details
+      throw new Error('Analysis service error');
     }
 
     const data = await response.json();
@@ -412,9 +442,11 @@ Only respond with the JSON, no additional text or markdown.`
     );
 
   } catch (error) {
-    console.error('Error analyzing product:', error);
+    // Log detailed error server-side only
+    console.error('Request processing error [internal]:', error instanceof Error ? error.message : 'Unknown error');
+    // Return generic message to client
     return new Response(
-      JSON.stringify({ error: 'Failed to analyze product. Please try again.' }),
+      JSON.stringify({ error: 'Unable to process request. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
