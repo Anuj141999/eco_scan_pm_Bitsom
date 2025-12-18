@@ -10,6 +10,7 @@ const corsHeaders = {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
 const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per IP
+const MAX_DEMO_REQUESTS_PER_WINDOW = 3; // Stricter limit for demo mode
 
 function getClientIP(req: Request): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -17,9 +18,11 @@ function getClientIP(req: Request): string {
          'unknown';
 }
 
-function isRateLimited(clientIP: string): boolean {
+function isRateLimited(clientIP: string, isDemo: boolean): boolean {
   const now = Date.now();
-  const entry = rateLimitMap.get(clientIP);
+  const key = isDemo ? `demo_${clientIP}` : clientIP;
+  const maxRequests = isDemo ? MAX_DEMO_REQUESTS_PER_WINDOW : MAX_REQUESTS_PER_WINDOW;
+  const entry = rateLimitMap.get(key);
   
   // Clean up old entries periodically
   if (rateLimitMap.size > 1000) {
@@ -31,11 +34,11 @@ function isRateLimited(clientIP: string): boolean {
   }
   
   if (!entry || now > entry.resetTime) {
-    rateLimitMap.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
     return false;
   }
   
-  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+  if (entry.count >= maxRequests) {
     return true;
   }
   
@@ -101,58 +104,57 @@ serve(async (req) => {
   }
 
   try {
-    // Check for demo mode in request body first (parsed later)
     const body = await req.json();
-    const { imageBase64, isDemo = false } = body;
+    const { imageBase64 } = body;
+    // NOTE: isDemo is determined server-side based on authentication, not from client
 
-    // Authentication check - required for non-demo requests
+    // Server-side demo detection - determine based on auth status, not client flag
     const authHeader = req.headers.get('Authorization');
     let userId: string | null = null;
+    let isDemo = false;
+    let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-    if (!isDemo) {
-      if (!authHeader) {
-        console.warn('No authorization header provided for authenticated request');
-        return new Response(
-          JSON.stringify({ error: 'Authentication required. Please log in to scan products.' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase configuration missing');
+      throw new Error('Server configuration error');
+    }
 
+    if (!authHeader) {
+      // No auth = demo mode with strict limits
+      isDemo = true;
+      console.log('No auth header - demo mode request');
+    } else {
       // Verify the JWT token
-      const supabaseUrl = Deno.env.get('SUPABASE_URL');
-      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Supabase configuration missing');
-        throw new Error('Server configuration error');
-      }
-
-      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
         global: { headers: { Authorization: authHeader } }
       });
 
       const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
       
       if (authError || !user) {
-        console.warn('Invalid authentication token:', authError?.message);
-        return new Response(
-          JSON.stringify({ error: 'Invalid authentication. Please log in again.' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        // Invalid auth = treat as demo mode
+        isDemo = true;
+        console.log('Invalid auth token - falling back to demo mode:', authError?.message);
+      } else {
+        userId = user.id;
+        isDemo = false;
+        console.log(`Authenticated request from user: ${userId}`);
       }
-
-      userId = user.id;
-      console.log(`Authenticated request from user: ${userId}`);
-    } else {
-      console.log('Demo mode request - limited features');
     }
 
-    // Rate limiting check
+    // Rate limiting check with stricter limits for demo mode
     const clientIP = getClientIP(req);
-    if (isRateLimited(clientIP)) {
-      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+    if (isRateLimited(clientIP, isDemo)) {
+      const message = isDemo 
+        ? 'Demo limit reached. Please sign up for more scans.'
+        : 'Too many requests. Please wait a moment and try again.';
+      console.warn(`Rate limit exceeded for ${isDemo ? 'demo ' : ''}IP: ${clientIP}`);
       return new Response(
-        JSON.stringify({ error: 'Too many requests. Please wait a moment and try again.' }),
+        JSON.stringify({ error: message }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
       );
     }
@@ -374,10 +376,38 @@ Only respond with the JSON, no additional text or markdown.`
       suggestions: suggestionsWithImages,
     };
 
+    // Save scan result to database for authenticated users
+    if (!isDemo && userId && supabaseServiceKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+        const { error: saveError } = await adminClient
+          .from('scan_history')
+          .insert({
+            user_id: userId,
+            product_name: result.productName,
+            category: result.category,
+            grade: result.grade,
+            carbon_footprint: result.carbonFootprint,
+            biodegradable: result.biodegradable,
+            is_demo: false
+          });
+        
+        if (saveError) {
+          console.error('Failed to save scan to history:', saveError);
+          // Don't fail the request - just log the error
+        } else {
+          console.log('Scan saved to history for user:', userId);
+        }
+      } catch (dbError) {
+        console.error('Database error saving scan:', dbError);
+        // Don't fail the request
+      }
+    }
+
     console.log('Analysis completed for:', result.productName);
 
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify({ ...result, isDemo }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

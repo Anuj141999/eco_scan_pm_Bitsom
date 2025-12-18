@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
@@ -12,8 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const Scanner = () => {
-  const [searchParams] = useSearchParams();
-  const isDemo = searchParams.get("demo") === "true";
   const { toast } = useToast();
   
   const [scanCount, setScanCount] = useState(0);
@@ -21,8 +18,10 @@ const Scanner = () => {
   const [result, setResult] = useState<EcoScore | null>(null);
   const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [isDemo, setIsDemo] = useState(true); // Determined by server response
 
-  const maxScans = isDemo ? 3 : 30; // Demo gets 3, logged in users get based on plan
+  // Max scans based on demo mode (server determines this)
+  const maxScans = isDemo ? 3 : 30;
 
   const handleImageCapture = async (imageData: string) => {
     if (scanCount >= maxScans) {
@@ -35,8 +34,9 @@ const Scanner = () => {
     setSuggestions([]);
 
     try {
+      // Send image to edge function - server determines demo mode based on auth
       const { data, error } = await supabase.functions.invoke('analyze-product', {
-        body: { imageBase64: imageData, isDemo }
+        body: { imageBase64: imageData }
       });
 
       if (error) {
@@ -59,6 +59,10 @@ const Scanner = () => {
         setIsAnalyzing(false);
         return;
       }
+
+      // Update demo mode based on server response
+      const serverIsDemo = data.isDemo ?? true;
+      setIsDemo(serverIsDemo);
 
       // Set the result from AI analysis
       const score: EcoScore = {
