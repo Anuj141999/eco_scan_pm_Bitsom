@@ -46,12 +46,33 @@ function isRateLimited(clientIP: string, isDemo: boolean): boolean {
   return false;
 }
 
+interface ProductComposition {
+  materials: {
+    name: string;
+    percentage: number;
+    isEcoFriendly: boolean;
+    recyclable: boolean;
+  }[];
+  packaging: {
+    type: string;
+    recyclable: boolean;
+    biodegradable: boolean;
+  };
+  certifications: string[];
+  environmentalImpact: {
+    waterUsage: "low" | "medium" | "high";
+    energyConsumption: "low" | "medium" | "high";
+    wasteGeneration: "low" | "medium" | "high";
+  };
+}
+
 interface ProductAnalysis {
   productName: string;
   category: string;
   grade: "S" | "A" | "B" | "C" | "D" | "F";
   carbonFootprint: number;
   biodegradable: number;
+  composition?: ProductComposition;
   suggestions: {
     name: string;
     grade: "S" | "A" | "B";
@@ -60,6 +81,7 @@ interface ProductAnalysis {
     carbonFootprint: number;
     biodegradable: number;
     imageUrl?: string;
+    composition?: ProductComposition;
   }[];
 }
 
@@ -271,6 +293,27 @@ Your response MUST be valid JSON with this exact structure:
   "grade": "S" | "A" | "B" | "C" | "D" | "F",
   "carbonFootprint": number between 5-50 (kg CO2),
   "biodegradable": number between 10-100 (percentage),
+  "composition": {
+    "materials": [
+      {
+        "name": "material name (e.g., Recycled Plastic, Organic Cotton, Palm Oil)",
+        "percentage": number between 1-100,
+        "isEcoFriendly": boolean,
+        "recyclable": boolean
+      }
+    ],
+    "packaging": {
+      "type": "Plastic Wrapper" | "Cardboard Box" | "Glass Bottle" | "Aluminum Can" | "Paper Bag" | "Biodegradable Pouch",
+      "recyclable": boolean,
+      "biodegradable": boolean
+    },
+    "certifications": ["FSC Certified", "Organic", "Fair Trade", "Rainforest Alliance", "Carbon Neutral", "Vegan", "Cruelty-Free"],
+    "environmentalImpact": {
+      "waterUsage": "low" | "medium" | "high",
+      "energyConsumption": "low" | "medium" | "high",
+      "wasteGeneration": "low" | "medium" | "high"
+    }
+  },
   "suggestions": [
     {
       "name": "eco-friendly alternative IN THE SAME CATEGORY with full product name",
@@ -278,10 +321,24 @@ Your response MUST be valid JSON with this exact structure:
       "amazonSearch": "exact search query for this specific product on amazon",
       "flipkartSearch": "exact search query for this specific product on flipkart",
       "carbonFootprint": number (lower than original),
-      "biodegradable": number (higher than original)
+      "biodegradable": number (higher than original),
+      "composition": {
+        "materials": [...same structure as above...],
+        "packaging": {...same structure as above...},
+        "certifications": [...],
+        "environmentalImpact": {...same structure as above...}
+      }
     }
   ]
 }
+
+COMPOSITION ANALYSIS RULES:
+- Identify 3-5 main materials/ingredients the product is made from
+- Be specific: "High Fructose Corn Syrup" not just "Sugar", "Recycled PET Plastic" not just "Plastic"
+- Set isEcoFriendly=true for: organic materials, recycled content, natural fibers, plant-based ingredients
+- Set recyclable=true for: glass, aluminum, paper, certain plastics (PET, HDPE)
+- Include relevant certifications the product might have based on its type
+- Assess environmental impact based on product category and manufacturing process
 
 SUGGESTION RULES - CRITICAL:
 - Match the EXACT product category (chips → chips, soda → soda, shampoo → shampoo)
@@ -292,6 +349,7 @@ SUGGESTION RULES - CRITICAL:
   * Household: "Beco Eco-Friendly", "The Better Home", "Purecosheet"
 - Include product size/variant in suggestion names
 - NEVER suggest unrelated categories
+- Include composition details for each suggestion with better eco metrics
 
 Grading criteria:
 - S (Excellent): Carbon footprint < 8 kg, Biodegradable > 90%
@@ -374,7 +432,7 @@ Only respond with the JSON, no additional text or markdown.`
       throw new Error('Failed to parse product analysis');
     }
 
-    // Build suggestions with images (only for non-demo mode)
+    // Build suggestions with images and composition (only for non-demo mode)
     let suggestionsWithImages: ProductAnalysis['suggestions'] = [];
     
     if (!isDemo && analysis.suggestions && analysis.suggestions.length > 0) {
@@ -389,6 +447,7 @@ Only respond with the JSON, no additional text or markdown.`
           carbonFootprint: Math.round(s.carbonFootprint) || 10,
           biodegradable: Math.round(s.biodegradable) || 85,
           imageUrl: imageUrl || undefined,
+          composition: s.composition || undefined,
         };
       });
       
@@ -403,6 +462,7 @@ Only respond with the JSON, no additional text or markdown.`
       grade: analysis.grade || 'C',
       carbonFootprint: Math.round(analysis.carbonFootprint) || 20,
       biodegradable: Math.round(analysis.biodegradable) || 50,
+      composition: !isDemo ? analysis.composition : undefined, // Only include composition for authenticated users
       suggestions: suggestionsWithImages,
     };
 

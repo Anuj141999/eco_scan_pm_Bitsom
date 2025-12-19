@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
+import { ProductComposition } from "@/components/scanner/ProductDetailsModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle, ScanLine } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,9 +72,10 @@ const Scanner = () => {
         biodegradable: data.biodegradable,
         productName: data.productName,
         category: data.category,
+        composition: data.composition as ProductComposition | undefined,
       };
 
-      // Transform suggestions with proper links and images
+      // Transform suggestions with proper links, images, and composition
       const productSuggestions: ProductSuggestion[] = (data.suggestions || []).map((s: any) => ({
         name: s.name,
         grade: s.grade,
@@ -82,6 +84,7 @@ const Scanner = () => {
         carbonFootprint: s.carbonFootprint,
         biodegradable: s.biodegradable,
         imageUrl: s.imageUrl,
+        composition: s.composition as ProductComposition | undefined,
       }));
 
       setResult(score);
