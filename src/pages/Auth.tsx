@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -6,15 +6,49 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Leaf, Mail, Lock, User, ArrowRight, Eye, EyeOff, Wand2, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 // Validation schemas
 const emailSchema = z.string().email("Please enter a valid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const passwordSchema = z.string().min(8, "Password must be at least 8 characters");
 const nameSchema = z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters");
+
+// Password strength requirements
+const passwordRequirements = [
+  { id: "length", label: "At least 8 characters", test: (pwd: string) => pwd.length >= 8 },
+  { id: "uppercase", label: "One uppercase letter (A-Z)", test: (pwd: string) => /[A-Z]/.test(pwd) },
+  { id: "lowercase", label: "One lowercase letter (a-z)", test: (pwd: string) => /[a-z]/.test(pwd) },
+  { id: "number", label: "One number (0-9)", test: (pwd: string) => /[0-9]/.test(pwd) },
+  { id: "special", label: "One special character (!@#$%^&*)", test: (pwd: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) },
+];
+
+// Generate a strong password
+const generateStrongPassword = (): string => {
+  const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lowercase = "abcdefghjkmnpqrstuvwxyz";
+  const numbers = "23456789";
+  const special = "!@#$%^&*";
+  
+  let password = "";
+  
+  // Ensure at least one of each required type
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+  
+  // Fill remaining with random mix
+  const allChars = uppercase + lowercase + numbers + special;
+  for (let i = 0; i < 8; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Shuffle the password
+  return password.split("").sort(() => Math.random() - 0.5).join("");
+};
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -32,6 +66,17 @@ const Auth = () => {
     email: "",
     password: "",
   });
+
+  // Calculate password strength
+  const passwordStrength = useMemo(() => {
+    return passwordRequirements.map(req => ({
+      ...req,
+      met: req.test(formData.password),
+    }));
+  }, [formData.password]);
+
+  const allRequirementsMet = passwordStrength.every(req => req.met);
+  const strengthPercentage = (passwordStrength.filter(req => req.met).length / passwordRequirements.length) * 100;
 
   useEffect(() => {
     const urlMode = searchParams.get("mode");
@@ -248,7 +293,29 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      {mode === "signup" && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs text-primary hover:text-primary/80"
+                          onClick={() => {
+                            const strongPassword = generateStrongPassword();
+                            setFormData({ ...formData, password: strongPassword });
+                            setShowPassword(true);
+                            toast({
+                              title: "Strong password generated!",
+                              description: "Make sure to save it somewhere safe.",
+                            });
+                          }}
+                        >
+                          <Wand2 className="w-3 h-3 mr-1" />
+                          Suggest Strong Password
+                        </Button>
+                      )}
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -277,6 +344,55 @@ const Auth = () => {
                     {errors.password && (
                       <p className="text-xs text-destructive">{errors.password}</p>
                     )}
+
+                    {/* Password strength indicator - only show on signup */}
+                    <AnimatePresence>
+                      {mode === "signup" && formData.password.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-2 pt-2"
+                        >
+                          {/* Strength bar */}
+                          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${strengthPercentage}%` }}
+                              className={`h-full transition-colors ${
+                                strengthPercentage <= 40 
+                                  ? "bg-red-500" 
+                                  : strengthPercentage <= 60 
+                                    ? "bg-orange-500" 
+                                    : strengthPercentage <= 80 
+                                      ? "bg-yellow-500" 
+                                      : "bg-green-500"
+                              }`}
+                            />
+                          </div>
+                          
+                          {/* Requirements list */}
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Password must contain:</p>
+                            {passwordStrength.map((req) => (
+                              <div
+                                key={req.id}
+                                className={`flex items-center gap-1.5 text-xs transition-colors ${
+                                  req.met ? "text-green-600" : "text-muted-foreground"
+                                }`}
+                              >
+                                {req.met ? (
+                                  <Check className="w-3 h-3" />
+                                ) : (
+                                  <X className="w-3 h-3" />
+                                )}
+                                <span>{req.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   <Button
