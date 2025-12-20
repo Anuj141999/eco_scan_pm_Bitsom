@@ -114,9 +114,17 @@ const Auth = () => {
     }
 
     if (validatePassword) {
-      const passwordResult = passwordSchema.safeParse(formData.password);
-      if (!passwordResult.success) {
-        newErrors.password = passwordResult.error.errors[0].message;
+      // For signup, require all password conditions to be met
+      if (mode === "signup") {
+        if (!allRequirementsMet) {
+          newErrors.password = "Password must meet all requirements below";
+        }
+      } else {
+        // For login, just check minimum length
+        const passwordResult = passwordSchema.safeParse(formData.password);
+        if (!passwordResult.success) {
+          newErrors.password = passwordResult.error.errors[0].message;
+        }
       }
     }
 
