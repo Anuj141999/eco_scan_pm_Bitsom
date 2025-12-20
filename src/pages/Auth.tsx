@@ -72,48 +72,60 @@ const Auth = () => {
 
   // Calculate password strength
   const passwordStrength = useMemo(() => {
-    return passwordRequirements.map(req => ({
+    return passwordRequirements.map((req) => ({
       ...req,
       met: req.test(formData.password),
     }));
   }, [formData.password]);
 
-  const allRequirementsMet = passwordStrength.every(req => req.met);
-  const strengthPercentage = (passwordStrength.filter(req => req.met).length / passwordRequirements.length) * 100;
+  const allRequirementsMet = passwordStrength.every((req) => req.met);
+  const strengthPercentage = (passwordStrength.filter((req) => req.met).length / passwordRequirements.length) * 100;
 
   useEffect(() => {
     const urlMode = searchParams.get("mode");
-    if (urlMode === "signup" || urlMode === "login") {
+    if (urlMode === "signup" || urlMode === "login" || urlMode === "forgot-password") {
       setMode(urlMode);
     }
   }, [searchParams]);
 
   // Check if user is already authenticated or needs password reset
   useEffect(() => {
+    const initialHashParams = new URLSearchParams(window.location.hash.substring(1));
+    const isRecoveryFromHash = initialHashParams.get("type") === "recovery";
+
+    if (isRecoveryFromHash) {
+      setMode("reset-password");
+    }
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // If we're coming from a recovery link, stay on this page so user can set a new password.
+      if (isRecoveryFromHash) {
+        setMode("reset-password");
+        return;
+      }
+
       if (session) {
-        // Check if this is a password recovery session
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        if (hashParams.get("type") === "recovery") {
-          setMode("reset-password");
-          return;
-        }
         navigate("/scanner");
       }
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Check URL hash for password recovery
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Only synchronous state updates here
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const isRecovery = hashParams.get("type") === "recovery" || event === "USER_UPDATED" && hashParams.has("access_token");
-      
+      const isRecovery = hashParams.get("type") === "recovery";
+
       if (isRecovery) {
         setMode("reset-password");
         return;
       }
-      
+
       if (session) {
         navigate("/scanner");
       }
@@ -172,6 +184,20 @@ const Auth = () => {
     setErrors({});
 
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast({
+          title: "Open the reset link",
+          description: "For security, you can set a new password only from the reset link sent to your email.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: formData.password,
       });
@@ -213,7 +239,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/auth?mode=reset`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) {
@@ -511,8 +537,11 @@ const Auth = () => {
                         <Mail className="w-8 h-8 text-green-600" />
                       </div>
                       <h3 className="font-semibold mb-2">Check your inbox</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-muted-foreground mb-2">
                         We've sent a password reset link to <strong>{formData.email}</strong>
+                      </p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Open that email link to return here and set your new password.
                       </p>
                       <Button
                         variant="eco-outline"
