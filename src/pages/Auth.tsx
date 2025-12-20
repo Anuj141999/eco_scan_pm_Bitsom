@@ -53,19 +53,21 @@ const generateStrongPassword = (): string => {
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup" | "forgot-password">(
+  const [mode, setMode] = useState<"login" | "signup" | "forgot-password" | "reset-password">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
   );
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const { toast } = useToast();
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   // Calculate password strength
@@ -86,17 +88,32 @@ const Auth = () => {
     }
   }, [searchParams]);
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated or needs password reset
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        // Check if this is a password recovery session
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        if (hashParams.get("type") === "recovery") {
+          setMode("reset-password");
+          return;
+        }
         navigate("/scanner");
       }
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Check URL hash for password recovery
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const isRecovery = hashParams.get("type") === "recovery" || event === "USER_UPDATED" && hashParams.has("access_token");
+      
+      if (isRecovery) {
+        setMode("reset-password");
+        return;
+      }
+      
       if (session) {
         navigate("/scanner");
       }
@@ -106,18 +123,23 @@ const Auth = () => {
   }, [navigate]);
 
   const validateForm = (validatePassword: boolean = true): boolean => {
-    const newErrors: { name?: string; email?: string; password?: string } = {};
+    const newErrors: { name?: string; email?: string; password?: string; confirmPassword?: string } = {};
 
-    const emailResult = emailSchema.safeParse(formData.email);
-    if (!emailResult.success) {
-      newErrors.email = emailResult.error.errors[0].message;
+    if (mode !== "reset-password") {
+      const emailResult = emailSchema.safeParse(formData.email);
+      if (!emailResult.success) {
+        newErrors.email = emailResult.error.errors[0].message;
+      }
     }
 
     if (validatePassword) {
-      // For signup, require all password conditions to be met
-      if (mode === "signup") {
+      // For signup and reset-password, require all password conditions to be met
+      if (mode === "signup" || mode === "reset-password") {
         if (!allRequirementsMet) {
           newErrors.password = "Password must meet all requirements below";
+        }
+        if (mode === "reset-password" && formData.password !== formData.confirmPassword) {
+          newErrors.confirmPassword = "Passwords do not match";
         }
       } else {
         // For login, just check minimum length
@@ -139,6 +161,73 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/scanner`,
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Google login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsLoading(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm(true)) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: formData.password,
+      });
+
+      if (error) {
+        toast({
+          title: "Password reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast({
+        title: "Password updated!",
+        description: "Your password has been successfully reset.",
+      });
+      navigate("/scanner");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setIsLoading(false);
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -151,7 +240,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/auth?mode=login`,
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
       });
 
       if (error) {
@@ -284,21 +373,161 @@ const Auth = () => {
                   ? "Welcome back" 
                   : mode === "signup" 
                     ? "Create account"
-                    : "Reset password"}
+                    : mode === "reset-password"
+                      ? "Set new password"
+                      : "Reset password"}
               </h1>
               <p className="text-muted-foreground mt-2">
                 {mode === "login"
                   ? "Sign in to continue scanning"
                   : mode === "signup"
                     ? "Start your eco-friendly journey"
-                    : "Enter your email to reset your password"}
+                    : mode === "reset-password"
+                      ? "Enter and confirm your new password"
+                      : "Enter your email to reset your password"}
               </p>
             </div>
 
             <Card className="shadow-lifted">
               <CardContent className="p-6">
-                {/* Forgot Password Mode */}
-                {mode === "forgot-password" ? (
+                {/* Reset Password Mode - New password form */}
+                {mode === "reset-password" ? (
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="new-password">New Password</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs text-primary hover:text-primary/80"
+                          onClick={() => {
+                            const strongPassword = generateStrongPassword();
+                            setFormData({ ...formData, password: strongPassword, confirmPassword: strongPassword });
+                            setShowPassword(true);
+                            setShowConfirmPassword(true);
+                            toast({
+                              title: "Strong password generated!",
+                              description: "Make sure to save it somewhere safe.",
+                            });
+                          }}
+                        >
+                          <Wand2 className="w-3 h-3 mr-1" />
+                          Suggest Strong Password
+                        </Button>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="new-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          className={`pl-10 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+                          value={formData.password}
+                          onChange={(e) =>
+                            setFormData({ ...formData, password: e.target.value })
+                          }
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {errors.password && (
+                        <p className="text-xs text-destructive">{errors.password}</p>
+                      )}
+
+                      {/* Password strength indicator */}
+                      {formData.password.length > 0 && (
+                        <div className="space-y-2 pt-2">
+                          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${strengthPercentage}%` }}
+                              className={`h-full transition-colors ${
+                                strengthPercentage <= 40 
+                                  ? "bg-red-500" 
+                                  : strengthPercentage <= 60 
+                                    ? "bg-orange-500" 
+                                    : strengthPercentage <= 80 
+                                      ? "bg-yellow-500" 
+                                      : "bg-green-500"
+                              }`}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Password must contain:</p>
+                            {passwordStrength.map((req) => (
+                              <div
+                                key={req.id}
+                                className={`flex items-center gap-1.5 text-xs transition-colors ${
+                                  req.met ? "text-green-600" : "text-muted-foreground"
+                                }`}
+                              >
+                                {req.met ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                                <span>{req.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="confirm-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                          value={formData.confirmPassword}
+                          onChange={(e) =>
+                            setFormData({ ...formData, confirmPassword: e.target.value })
+                          }
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <p className="text-xs text-destructive">{errors.confirmPassword}</p>
+                      )}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      variant="eco"
+                      className="w-full"
+                      size="lg"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center gap-2">
+                          <motion.span
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Leaf className="w-4 h-4" />
+                          </motion.span>
+                          Updating...
+                        </span>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </Button>
+                  </form>
+                ) : mode === "forgot-password" ? (
                   resetEmailSent ? (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -564,8 +793,49 @@ const Auth = () => {
                 </form>
                 )}
 
-                {mode !== "forgot-password" && (
+                {mode !== "forgot-password" && mode !== "reset-password" && (
                   <>
+                    {/* Divider */}
+                    <div className="relative my-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Or continue with
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Google Login Button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleGoogleLogin}
+                      disabled={isLoading}
+                    >
+                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
+                      </svg>
+                      Continue with Google
+                    </Button>
+
                     {/* Forgot Password Link - only show on login */}
                     {mode === "login" && (
                       <div className="mt-4 text-center">
