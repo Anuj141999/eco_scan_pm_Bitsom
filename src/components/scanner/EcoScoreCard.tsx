@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, Droplets, Factory, Recycle, ExternalLink, Info } from "lucide-react";
+import { Leaf, Droplets, Factory, Recycle, ExternalLink, Info, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductDetailsModal, ProductComposition } from "./ProductDetailsModal";
-
+import { ProductComparisonModal } from "./ProductComparisonModal";
 export interface EcoScore {
   grade: "S" | "A" | "B" | "C" | "D" | "F";
   carbonFootprint: number;
@@ -51,6 +51,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
     composition?: ProductComposition;
   } | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<ProductSuggestion | null>(null);
+  const [comparisonSuggestion, setComparisonSuggestion] = useState<ProductSuggestion | null>(null);
 
   return (
     <>
@@ -77,6 +78,16 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
         biodegradable={selectedSuggestion?.biodegradable || 0}
         composition={selectedSuggestion?.composition}
       />
+
+      {/* Product Comparison Modal */}
+      {comparisonSuggestion && (
+        <ProductComparisonModal
+          isOpen={!!comparisonSuggestion}
+          onClose={() => setComparisonSuggestion(null)}
+          scannedProduct={score}
+          suggestion={comparisonSuggestion}
+        />
+      )}
       <div className="space-y-6">
         {/* Main Score Card */}
         <motion.div
@@ -239,8 +250,19 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                           size="sm"
                           className="flex-shrink-0"
                           onClick={() => setSelectedSuggestion(product)}
+                          title="View Details"
                         >
                           <Info className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="eco-outline"
+                          size="sm"
+                          className="flex-shrink-0"
+                          onClick={() => setComparisonSuggestion(product)}
+                          title="Compare Products"
+                        >
+                          <GitCompare className="w-4 h-4" />
+                          Compare
                         </Button>
                         <a
                           href={product.amazonLink}
