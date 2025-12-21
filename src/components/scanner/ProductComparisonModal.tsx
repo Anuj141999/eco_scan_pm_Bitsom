@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Factory, Recycle, Leaf, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { ArrowRight, Factory, Recycle, Leaf, TrendingDown, TrendingUp, Minus, Droplets, Package, Award, Calendar, TreePine, Car, Lightbulb } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -40,6 +40,12 @@ export const ProductComparisonModal = ({
   const suggestionGradeIndex = gradeOrder.indexOf(suggestion.grade);
   const gradeImprovement = suggestionGradeIndex - scannedGradeIndex;
 
+  // Calculate yearly impact (assuming weekly usage)
+  const yearlyUsage = 52;
+  const yearlyCarbonSaved = carbonDiff * yearlyUsage;
+  const treesEquivalent = yearlyCarbonSaved > 0 ? Math.round(yearlyCarbonSaved / 21) : 0; // 1 tree absorbs ~21kg CO2/year
+  const carMilesEquivalent = yearlyCarbonSaved > 0 ? Math.round(yearlyCarbonSaved * 2.3) : 0; // ~0.43kg CO2 per mile
+
   const getTrendIcon = (diff: number, higherIsBetter: boolean) => {
     const improved = higherIsBetter ? diff > 0 : diff < 0;
     const worse = higherIsBetter ? diff < 0 : diff > 0;
@@ -49,13 +55,22 @@ export const ProductComparisonModal = ({
     return <Minus className="w-4 h-4 text-muted-foreground" />;
   };
 
+  const getWaterImpact = (biodegradable: number) => {
+    if (biodegradable >= 80) return { level: "Low", color: "text-green-600" };
+    if (biodegradable >= 50) return { level: "Moderate", color: "text-yellow-600" };
+    return { level: "High", color: "text-red-600" };
+  };
+
+  const scannedWaterImpact = getWaterImpact(scannedProduct.biodegradable);
+  const suggestionWaterImpact = getWaterImpact(suggestion.biodegradable);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Leaf className="w-5 h-5 text-eco-leaf" />
-            Product Comparison
+            Detailed Product Comparison
           </DialogTitle>
         </DialogHeader>
 
@@ -74,6 +89,7 @@ export const ProductComparisonModal = ({
                 <span className="text-3xl font-bold">{scannedProduct.grade}</span>
                 <span className="text-sm opacity-90">{scannedGradeStyle.label}</span>
               </div>
+              <p className="text-xs opacity-75 mt-2">{scannedProduct.category}</p>
             </div>
 
             {/* Arrow */}
@@ -94,128 +110,262 @@ export const ProductComparisonModal = ({
                 <span className="text-3xl font-bold">{suggestion.grade}</span>
                 <span className="text-sm opacity-90">{suggestionGradeStyle.label}</span>
               </div>
+              <p className="text-xs opacity-75 mt-2">{scannedProduct.category}</p>
             </div>
           </motion.div>
 
           <Separator />
 
-          {/* Carbon Footprint Comparison */}
+          {/* Detailed Metrics Comparison */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="space-y-4"
+            className="grid md:grid-cols-2 gap-6"
           >
-            <h4 className="font-semibold flex items-center gap-2">
-              <Factory className="w-5 h-5 text-eco-earth" />
-              Carbon Footprint
-            </h4>
-            
-            <div className="grid grid-cols-2 gap-6">
-              {/* Scanned Product */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Your Product</span>
-                  <span className="font-medium">{scannedProduct.carbonFootprint} kg CO₂</span>
-                </div>
-                <Progress 
-                  value={Math.max(0, 100 - (scannedProduct.carbonFootprint / 50) * 100)} 
-                  className="h-3" 
-                />
-              </div>
+            {/* Carbon Footprint */}
+            <div className="space-y-4 p-4 rounded-xl bg-secondary/30">
+              <h4 className="font-semibold flex items-center gap-2">
+                <Factory className="w-5 h-5 text-eco-earth" />
+                Carbon Footprint
+              </h4>
               
-              {/* Suggestion */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Alternative</span>
-                  <span className="font-medium">{suggestion.carbonFootprint} kg CO₂</span>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Your Product</span>
+                    <span className="font-medium">{scannedProduct.carbonFootprint} kg CO₂</span>
+                  </div>
+                  <Progress 
+                    value={Math.max(0, 100 - (scannedProduct.carbonFootprint / 50) * 100)} 
+                    className="h-3" 
+                  />
                 </div>
-                <Progress 
-                  value={Math.max(0, 100 - (suggestion.carbonFootprint / 50) * 100)} 
-                  className="h-3" 
-                />
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Alternative</span>
+                    <span className="font-medium">{suggestion.carbonFootprint} kg CO₂</span>
+                  </div>
+                  <Progress 
+                    value={Math.max(0, 100 - (suggestion.carbonFootprint / 50) * 100)} 
+                    className="h-3" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background/50">
+                {getTrendIcon(-carbonDiff, false)}
+                <span className="text-sm">
+                  {carbonDiff > 0 ? (
+                    <span className="text-green-600 font-medium">
+                      {carbonDiff.toFixed(1)} kg CO₂ less per use
+                    </span>
+                  ) : carbonDiff < 0 ? (
+                    <span className="text-red-600 font-medium">
+                      {Math.abs(carbonDiff).toFixed(1)} kg CO₂ more per use
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Same carbon footprint</span>
+                  )}
+                </span>
               </div>
             </div>
 
-            {/* Difference */}
-            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-secondary/50">
-              {getTrendIcon(-carbonDiff, false)}
-              <span className="text-sm">
-                {carbonDiff > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {carbonDiff.toFixed(1)} kg CO₂ less emissions
-                  </span>
-                ) : carbonDiff < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(carbonDiff).toFixed(1)} kg CO₂ more emissions
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Same carbon footprint</span>
-                )}
-              </span>
+            {/* Biodegradability */}
+            <div className="space-y-4 p-4 rounded-xl bg-secondary/30">
+              <h4 className="font-semibold flex items-center gap-2">
+                <Recycle className="w-5 h-5 text-eco-leaf" />
+                Biodegradability
+              </h4>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Your Product</span>
+                    <span className="font-medium">{scannedProduct.biodegradable}%</span>
+                  </div>
+                  <Progress value={scannedProduct.biodegradable} className="h-3" />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Alternative</span>
+                    <span className="font-medium">{suggestion.biodegradable}%</span>
+                  </div>
+                  <Progress value={suggestion.biodegradable} className="h-3" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background/50">
+                {getTrendIcon(bioDiff, true)}
+                <span className="text-sm">
+                  {bioDiff > 0 ? (
+                    <span className="text-green-600 font-medium">
+                      {bioDiff}% more biodegradable
+                    </span>
+                  ) : bioDiff < 0 ? (
+                    <span className="text-red-600 font-medium">
+                      {Math.abs(bioDiff)}% less biodegradable
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Same biodegradability</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Water Impact Comparison */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="p-4 rounded-xl bg-secondary/30"
+          >
+            <h4 className="font-semibold flex items-center gap-2 mb-4">
+              <Droplets className="w-5 h-5 text-eco-sky" />
+              Water Pollution Impact
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-lg bg-background/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Your Product</p>
+                <p className={`font-semibold ${scannedWaterImpact.color}`}>{scannedWaterImpact.level}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-background/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Alternative</p>
+                <p className={`font-semibold ${suggestionWaterImpact.color}`}>{suggestionWaterImpact.level}</p>
+              </div>
             </div>
           </motion.div>
 
           <Separator />
 
-          {/* Biodegradability Comparison */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4"
-          >
-            <h4 className="font-semibold flex items-center gap-2">
-              <Recycle className="w-5 h-5 text-eco-leaf" />
-              Biodegradability
-            </h4>
-            
-            <div className="grid grid-cols-2 gap-6">
-              {/* Scanned Product */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Your Product</span>
-                  <span className="font-medium">{scannedProduct.biodegradable}%</span>
+          {/* Yearly Impact Calculator */}
+          {carbonDiff > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-4 rounded-xl bg-gradient-to-r from-eco-leaf/10 to-eco-sky/10 border border-eco-leaf/20"
+            >
+              <h4 className="font-semibold flex items-center gap-2 mb-4">
+                <Calendar className="w-5 h-5 text-eco-leaf" />
+                Your Yearly Impact (Weekly Usage)
+              </h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 rounded-lg bg-background/60">
+                  <Factory className="w-6 h-6 text-eco-earth mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-green-600">{yearlyCarbonSaved.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">kg CO₂ saved/year</p>
                 </div>
-                <Progress value={scannedProduct.biodegradable} className="h-3" />
-              </div>
-              
-              {/* Suggestion */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Alternative</span>
-                  <span className="font-medium">{suggestion.biodegradable}%</span>
+                <div className="text-center p-3 rounded-lg bg-background/60">
+                  <TreePine className="w-6 h-6 text-eco-leaf mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-green-600">{treesEquivalent}</p>
+                  <p className="text-xs text-muted-foreground">trees planted equivalent</p>
                 </div>
-                <Progress value={suggestion.biodegradable} className="h-3" />
+                <div className="text-center p-3 rounded-lg bg-background/60">
+                  <Car className="w-6 h-6 text-eco-earth mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-green-600">{carMilesEquivalent}</p>
+                  <p className="text-xs text-muted-foreground">car miles avoided</p>
+                </div>
               </div>
-            </div>
+            </motion.div>
+          )}
 
-            {/* Difference */}
-            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-secondary/50">
-              {getTrendIcon(bioDiff, true)}
-              <span className="text-sm">
-                {bioDiff > 0 ? (
-                  <span className="text-green-600 font-medium">
-                    {bioDiff}% more biodegradable
-                  </span>
-                ) : bioDiff < 0 ? (
-                  <span className="text-red-600 font-medium">
-                    {Math.abs(bioDiff)}% less biodegradable
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Same biodegradability</span>
+          {/* Composition Comparison (if available) */}
+          {(scannedProduct.composition || suggestion.composition) && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="p-4 rounded-xl bg-secondary/30"
+            >
+              <h4 className="font-semibold flex items-center gap-2 mb-4">
+                <Package className="w-5 h-5 text-eco-earth" />
+                Material Composition
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                {scannedProduct.composition?.materials && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Your Product</p>
+                    <div className="flex flex-wrap gap-2">
+                      {scannedProduct.composition.materials.map((material, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {material.name} ({material.percentage}%)
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </span>
-            </div>
-          </motion.div>
+                {suggestion.composition?.materials && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Alternative</p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestion.composition.materials.map((material, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs bg-eco-leaf/10 text-eco-leaf">
+                          {material.name} ({material.percentage}%)
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Certifications Comparison */}
+          {(scannedProduct.composition?.certifications?.length || suggestion.composition?.certifications?.length) && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-4 rounded-xl bg-secondary/30"
+            >
+              <h4 className="font-semibold flex items-center gap-2 mb-4">
+                <Award className="w-5 h-5 text-yellow-500" />
+                Eco Certifications
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Your Product</p>
+                  {scannedProduct.composition?.certifications?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {scannedProduct.composition.certifications.map((cert, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {cert}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No certifications</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Alternative</p>
+                  {suggestion.composition?.certifications?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {suggestion.composition.certifications.map((cert, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs border-eco-leaf text-eco-leaf">
+                          {cert}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">No certifications</p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           <Separator />
 
-          {/* Summary */}
+          {/* Environmental Impact Summary */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.35 }}
             className="p-4 rounded-xl bg-eco-leaf/10 border border-eco-leaf/20"
           >
             <h4 className="font-semibold text-eco-leaf mb-2 flex items-center gap-2">
@@ -226,23 +376,30 @@ export const ProductComparisonModal = ({
               By switching from <strong>{scannedProduct.productName}</strong> to{" "}
               <strong>{suggestion.name}</strong>, you would:
             </p>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-3 space-y-2 text-sm">
               {carbonDiff > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
-                  <TrendingDown className="w-4 h-4" />
-                  Reduce carbon emissions by {carbonDiff.toFixed(1)} kg CO₂
+                  <TrendingDown className="w-4 h-4 flex-shrink-0" />
+                  Reduce carbon emissions by {carbonDiff.toFixed(1)} kg CO₂ per use
                 </li>
               )}
               {bioDiff > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
-                  <TrendingUp className="w-4 h-4" />
+                  <TrendingUp className="w-4 h-4 flex-shrink-0" />
                   Increase biodegradability by {bioDiff}%
                 </li>
               )}
               {gradeImprovement > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
-                  <Leaf className="w-4 h-4" />
+                  <Leaf className="w-4 h-4 flex-shrink-0" />
                   Improve eco-grade by {gradeImprovement} level{gradeImprovement > 1 ? "s" : ""}
+                </li>
+              )}
+              {scannedWaterImpact.level !== suggestionWaterImpact.level && 
+               suggestionWaterImpact.level === "Low" && (
+                <li className="flex items-center gap-2 text-green-600">
+                  <Droplets className="w-4 h-4 flex-shrink-0" />
+                  Reduce water pollution impact to Low
                 </li>
               )}
               {carbonDiff <= 0 && bioDiff <= 0 && gradeImprovement <= 0 && (
@@ -251,6 +408,25 @@ export const ProductComparisonModal = ({
                 </li>
               )}
             </ul>
+          </motion.div>
+
+          {/* Pro Tip */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
+          >
+            <h4 className="font-semibold text-amber-600 mb-2 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5" />
+              Eco Tip
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              {carbonDiff > 0 
+                ? `Small changes add up! Switching to ${suggestion.name} weekly could save over ${yearlyCarbonSaved.toFixed(0)} kg of CO₂ emissions annually.`
+                : `Consider the full lifecycle of products - look for items with eco-certifications and recyclable packaging for maximum environmental benefit.`
+              }
+            </p>
           </motion.div>
         </div>
       </DialogContent>
