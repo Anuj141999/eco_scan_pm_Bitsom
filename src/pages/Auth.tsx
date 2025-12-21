@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,19 @@ const Auth = () => {
   const [mode, setMode] = useState<"login" | "signup" | "forgot-password" | "reset-password">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
   );
+  const [isRecoveryFlow, setIsRecoveryFlow] = useState(false);
+
+  const modeRef = useRef(mode);
+  const recoveryRef = useRef(isRecoveryFlow);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    recoveryRef.current = isRecoveryFlow;
+  }, [isRecoveryFlow]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,11 +95,14 @@ const Auth = () => {
   const strengthPercentage = (passwordStrength.filter((req) => req.met).length / passwordRequirements.length) * 100;
 
   useEffect(() => {
+    // Don't allow query params (e.g. ?mode=signup) to override the password recovery flow.
+    if (isRecoveryFlow) return;
+
     const urlMode = searchParams.get("mode");
     if (urlMode === "signup" || urlMode === "login" || urlMode === "forgot-password") {
       setMode(urlMode);
     }
-  }, [searchParams]);
+  }, [searchParams, isRecoveryFlow]);
 
   // Check if user is already authenticated or needs password reset
   useEffect(() => {
@@ -94,35 +110,31 @@ const Auth = () => {
     const isRecoveryFromHash = initialHashParams.get("type") === "recovery";
 
     if (isRecoveryFromHash) {
+      setIsRecoveryFlow(true);
       setMode("reset-password");
     }
 
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      // If we're coming from a recovery link, stay on this page so user can set a new password.
-      if (isRecoveryFromHash) {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // PASSWORD_RECOVERY is the most reliable signal; URL hash may be cleared by the auth client.
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryFlow(true);
         setMode("reset-password");
         return;
       }
 
-      if (session) {
-        navigate("/scanner");
-      }
-    };
-    checkSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Only synchronous state updates here
+      // Fallback: handle recovery link detection from URL hash.
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const isRecovery = hashParams.get("type") === "recovery";
 
       if (isRecovery) {
+        setIsRecoveryFlow(true);
         setMode("reset-password");
+        return;
+      }
+
+      if (recoveryRef.current || modeRef.current === "reset-password") {
         return;
       }
 
@@ -130,6 +142,28 @@ const Auth = () => {
         navigate("/scanner");
       }
     });
+
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // If we're in recovery flow, stay on this page so user can set a new password.
+      if (isRecoveryFromHash || recoveryRef.current || modeRef.current === "reset-password") {
+        return;
+      }
+
+      if (session) {
+        // Defer redirect to avoid racing PASSWORD_RECOVERY classification.
+        setTimeout(() => {
+          if (!recoveryRef.current && modeRef.current !== "reset-password") {
+            navigate("/scanner");
+          }
+        }, 0);
+      }
+    };
+
+    checkSession();
 
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -216,6 +250,7 @@ const Auth = () => {
         title: "Password updated!",
         description: "Your password has been successfully reset.",
       });
+      setIsRecoveryFlow(false);
       navigate("/scanner");
     } catch (error) {
       toast({
