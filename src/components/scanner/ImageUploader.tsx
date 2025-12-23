@@ -37,13 +37,63 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
     }
   }, []);
 
-  const processFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setPreviewImage(result);
-    };
-    reader.readAsDataURL(file);
+  const convertToJpeg = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const jpegData = canvas.toDataURL("image/jpeg", 0.9);
+          URL.revokeObjectURL(url);
+          resolve(jpegData);
+        } else {
+          reject(new Error("Failed to get canvas context"));
+        }
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Failed to load image"));
+      };
+      
+      img.src = url;
+    });
+  };
+
+  const processFile = async (file: File) => {
+    try {
+      // Check if file needs conversion (AVIF, HEIC, or other unsupported formats)
+      const unsupportedFormats = ['image/avif', 'image/heic', 'image/heif'];
+      
+      if (unsupportedFormats.includes(file.type)) {
+        // Convert to JPEG
+        const jpegData = await convertToJpeg(file);
+        setPreviewImage(jpegData);
+      } else {
+        // Use original format
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setPreviewImage(result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      // Fallback to standard read
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setPreviewImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
