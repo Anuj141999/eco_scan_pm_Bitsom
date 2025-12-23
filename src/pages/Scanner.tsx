@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const Scanner = () => {
   const { toast } = useToast();
+  const { playSuccessSound } = useSoundEffects();
   
   const [scanCount, setScanCount] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -90,6 +92,9 @@ const Scanner = () => {
       setResult(score);
       setSuggestions(productSuggestions);
       setScanCount((prev) => prev + 1);
+
+      // Play success sound when analysis completes
+      playSuccessSound();
 
       toast({
         title: "Product Analyzed!",

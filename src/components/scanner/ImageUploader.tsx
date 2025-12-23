@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 interface ImageUploaderProps {
   onImageCapture: (imageData: string) => void;
@@ -14,6 +15,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { playClickSound } = useSoundEffects();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -52,6 +54,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
   };
 
   const startCamera = async () => {
+    playClickSound();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: "environment" } 
@@ -187,7 +190,10 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
                 </Button>
                 <Button 
                   variant="eco-outline" 
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    playClickSound();
+                    fileInputRef.current?.click();
+                  }}
                 >
                   <Upload className="w-4 h-4" />
                   Upload Image
