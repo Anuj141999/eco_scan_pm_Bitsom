@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Camera, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
@@ -68,15 +68,12 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
 
   const processFile = async (file: File) => {
     try {
-      // Check if file needs conversion (AVIF, HEIC, or other unsupported formats)
       const unsupportedFormats = ['image/avif', 'image/heic', 'image/heif'];
       
       if (unsupportedFormats.includes(file.type)) {
-        // Convert to JPEG
         const jpegData = await convertToJpeg(file);
         setPreviewImage(jpegData);
       } else {
-        // Use original format
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
@@ -86,7 +83,6 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
       }
     } catch (error) {
       console.error("Error processing file:", error);
-      // Fallback to standard read
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -156,7 +152,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <AnimatePresence mode="wait">
         {showCamera ? (
           <motion.div
@@ -164,7 +160,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative rounded-2xl overflow-hidden bg-foreground/5"
+            className="relative rounded-3xl overflow-hidden shadow-card border border-border/50"
           >
             <video
               ref={videoRef}
@@ -172,12 +168,13 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
               playsInline
               className="w-full aspect-video object-cover"
             />
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-              <Button variant="eco" size="lg" onClick={capturePhoto}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+              <Button variant="hero" size="lg" onClick={capturePhoto}>
                 <Camera className="w-5 h-5" />
                 Capture
               </Button>
-              <Button variant="secondary" size="lg" onClick={stopCamera}>
+              <Button variant="glass" size="lg" onClick={stopCamera}>
                 <X className="w-5 h-5" />
                 Cancel
               </Button>
@@ -189,19 +186,21 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative rounded-2xl overflow-hidden"
+            className="relative rounded-3xl overflow-hidden shadow-card border border-border/50"
           >
             <img
               src={previewImage}
               alt="Product preview"
-              className="w-full aspect-video object-contain bg-foreground/5"
+              className="w-full aspect-video object-contain bg-secondary/30"
             />
-            <button
+            <motion.button
               onClick={clearImage}
-              className="absolute top-4 right-4 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+              className="absolute top-4 right-4 p-3 rounded-2xl glass-card shadow-card hover:bg-card transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <X className="w-5 h-5" />
-            </button>
+            </motion.button>
           </motion.div>
         ) : (
           <motion.div
@@ -213,39 +212,49 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`
-              relative rounded-2xl border-2 border-dashed transition-all duration-300 p-12
+              relative rounded-3xl border-2 border-dashed transition-all duration-300 p-12 overflow-hidden
               ${isDragging 
-                ? "border-primary bg-primary/5 scale-[1.02]" 
-                : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                ? "border-eco-leaf bg-eco-leaf/5 scale-[1.02] shadow-eco" 
+                : "border-border hover:border-eco-leaf/50 hover:bg-secondary/30 shadow-card"
               }
             `}
           >
-            <div className="text-center">
+            {/* Background glow effect */}
+            <div className="absolute inset-0 glow-gradient opacity-50 pointer-events-none" />
+            
+            <div className="text-center relative">
               <motion.div
-                animate={{ y: isDragging ? -5 : 0 }}
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-secondary flex items-center justify-center"
+                animate={{ 
+                  y: isDragging ? -8 : 0,
+                  scale: isDragging ? 1.1 : 1
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="w-20 h-20 mx-auto mb-6 rounded-3xl eco-gradient flex items-center justify-center shadow-eco"
               >
-                <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                <ImageIcon className="w-10 h-10 text-primary-foreground" />
               </motion.div>
-              <h3 className="text-lg font-semibold mb-2">
+              
+              <h3 className="text-xl font-display font-bold mb-3">
                 {isDragging ? "Drop your image here" : "Upload Product Image"}
               </h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                Drag and drop an image, or click to browse
+              <p className="text-sm text-muted-foreground mb-8 max-w-sm mx-auto">
+                Drag and drop an image, or click the buttons below to get started
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="eco" onClick={startCamera}>
-                  <Camera className="w-4 h-4" />
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="eco" size="lg" onClick={startCamera}>
+                  <Camera className="w-5 h-5" />
                   Take Photo
                 </Button>
                 <Button 
                   variant="eco-outline" 
+                  size="lg"
                   onClick={() => {
                     playClickSound();
                     fileInputRef.current?.click();
                   }}
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-5 h-5" />
                   Upload Image
                 </Button>
               </div>
@@ -267,7 +276,8 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-center"
         >
-          <Button variant="hero" size="xl" onClick={analyzeImage}>
+          <Button variant="hero" size="xl" onClick={analyzeImage} className="group">
+            <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
             Analyze Product
           </Button>
         </motion.div>
