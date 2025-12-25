@@ -2,7 +2,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { HeroSection } from "@/components/home/HeroSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { CTASection } from "@/components/home/CTASection";
-import { Leaf, Mail, Shield, FileText } from "lucide-react";
+import { Leaf, Mail, Shield, FileText, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -15,61 +16,93 @@ const Index = () => {
       </main>
       
       {/* Footer */}
-      <footer className="py-12 border-t border-border bg-card">
+      <footer className="py-16 border-t border-border bg-card">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             {/* Brand */}
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg eco-gradient flex items-center justify-center">
-                  <Leaf className="w-4 h-4 text-primary-foreground" />
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-eco-leaf to-eco-mint flex items-center justify-center">
+                  <Leaf className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-semibold text-lg">EcoScan</span>
+                <span className="font-display font-bold text-xl">EcoScan</span>
               </div>
-              <p className="text-sm text-muted-foreground text-center md:text-left">
-                Making sustainable shopping accessible for everyone.
+              <p className="text-muted-foreground mb-4 max-w-sm">
+                Making sustainable shopping accessible for everyone. Scan products, 
+                understand their impact, and make eco-friendly choices.
+              </p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the planet
               </p>
             </div>
 
-            {/* Contact */}
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <h4 className="font-semibold text-foreground">Contact Us</h4>
-              <a 
-                href="mailto:ecoscan@gmail.com" 
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Mail className="w-4 h-4" />
-                ecoscan@gmail.com
-              </a>
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
+              <ul className="space-y-3">
+                <li>
+                  <Link to="/scanner?demo=true" className="text-muted-foreground hover:text-eco-leaf transition-colors">
+                    Try Demo
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-muted-foreground hover:text-eco-leaf transition-colors">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/auth" className="text-muted-foreground hover:text-eco-leaf transition-colors">
+                    Sign In
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            {/* Legal */}
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <h4 className="font-semibold text-foreground">Legal</h4>
-              <div className="flex flex-col gap-2">
-                <a 
-                  href="/privacy" 
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Shield className="w-4 h-4" />
-                  Privacy Policy
-                </a>
-                <a 
-                  href="/terms" 
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <FileText className="w-4 h-4" />
-                  Terms of Service
-                </a>
-              </div>
+            {/* Contact & Legal */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Contact & Legal</h4>
+              <ul className="space-y-3">
+                <li>
+                  <a 
+                    href="mailto:ecoscan@gmail.com" 
+                    className="flex items-center gap-2 text-muted-foreground hover:text-eco-leaf transition-colors"
+                  >
+                    <Mail className="w-4 h-4" />
+                    ecoscan@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <Link 
+                    to="/privacy" 
+                    className="flex items-center gap-2 text-muted-foreground hover:text-eco-leaf transition-colors"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/terms" 
+                    className="flex items-center gap-2 text-muted-foreground hover:text-eco-leaf transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
             </div>
           </div>
 
-          {/* Copyright */}
-          <div className="pt-6 border-t border-border">
-            <p className="text-sm text-muted-foreground text-center">
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-muted-foreground">
               © 2024 EcoScan. All rights reserved.
             </p>
+            <div className="flex items-center gap-6">
+              <span className="text-xs text-muted-foreground bg-eco-leaf/10 px-3 py-1 rounded-full">
+                🌱 Carbon Neutral
+              </span>
+            </div>
           </div>
         </div>
       </footer>
