@@ -1,7 +1,9 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { motion } from "framer-motion";
-import { Leaf, Check } from "lucide-react";
+import { Leaf, Check, Shield, Zap, Clock, HelpCircle, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const pricingPlans = [
   {
@@ -55,6 +57,25 @@ const pricingPlans = [
   },
 ];
 
+const faqs = [
+  {
+    q: "Can I try EcoScan for free?",
+    a: "Yes! Our free demo gives you 3 scans to experience EcoScan. No credit card required.",
+  },
+  {
+    q: "What's the difference between plans?",
+    a: "All plans include core features like eco-scores and carbon footprint analysis. Higher plans offer more scans, premium suggestions with purchase links, and priority support.",
+  },
+  {
+    q: "Can I cancel anytime?",
+    a: "Absolutely. Cancel your subscription anytime with no questions asked. We also offer a 30-day money-back guarantee.",
+  },
+  {
+    q: "How accurate is the AI analysis?",
+    a: "Our AI achieves 98% accuracy by cross-referencing industry databases and sustainability certifications.",
+  },
+];
+
 const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -65,23 +86,50 @@ const Pricing = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary mb-6">
-              <Leaf className="w-4 h-4 text-eco-leaf" />
-              <span className="text-sm font-medium">Simple, transparent pricing</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-eco-leaf/10 text-eco-leaf mb-6">
+              <Leaf className="w-4 h-4" />
+              <span className="text-sm font-medium">Simple, Transparent Pricing</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               Choose Your <span className="text-gradient-eco">Eco Plan</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Start with a free demo or choose a plan that fits your sustainable shopping needs.
-              Cancel anytime.
             </p>
           </motion.div>
 
+          {/* Free demo highlight */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="max-w-xl mx-auto mb-12"
+          >
+            <div className="bg-gradient-to-r from-eco-leaf/10 to-eco-mint/10 rounded-2xl p-6 border border-eco-leaf/20">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-eco-leaf/20 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-eco-leaf" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Try Free Demo</p>
+                    <p className="text-sm text-muted-foreground">3 free scans, no card required</p>
+                  </div>
+                </div>
+                <Link to="/scanner?demo=true">
+                  <Button variant="eco" className="shadow-lg shadow-eco-leaf/20">
+                    Start Now
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
             {pricingPlans.map((plan, index) => (
               <PricingCard
                 key={plan.name}
@@ -91,27 +139,46 @@ const Pricing = () => {
             ))}
           </div>
 
-          {/* Features Comparison */}
+          {/* Trust badges */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto"
+            className="flex flex-wrap justify-center gap-4 mb-16"
           >
-            <h2 className="text-2xl font-bold text-center mb-8">All Plans Include</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: Shield, text: "30-Day Money Back" },
+              { icon: Clock, text: "Cancel Anytime" },
+              { icon: Zap, text: "Instant Access" },
+            ].map((badge) => (
+              <div key={badge.text} className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border">
+                <badge.icon className="w-4 h-4 text-eco-leaf" />
+                <span className="text-sm font-medium">{badge.text}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* All Plans Include */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto mb-20"
+          >
+            <h2 className="text-2xl font-display font-bold text-center mb-8">All Plans Include</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                "Instant product scanning",
-                "Verified sustainability data",
-                "Mobile-friendly interface",
+                "Instant AI scanning",
+                "Verified eco data",
+                "Mobile-friendly app",
                 "Secure & private",
               ].map((feature) => (
                 <div
                   key={feature}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-card border"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border"
                 >
-                  <div className="w-6 h-6 rounded-full eco-gradient flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-primary-foreground" />
+                  <div className="w-6 h-6 rounded-full bg-eco-leaf/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3.5 h-3.5 text-eco-leaf" />
                   </div>
                   <span className="text-sm font-medium">{feature}</span>
                 </div>
@@ -119,20 +186,46 @@ const Pricing = () => {
             </div>
           </motion.div>
 
-          {/* FAQ Preview */}
+          {/* FAQ Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-20 text-center"
+            className="max-w-3xl mx-auto"
           >
-            <h2 className="text-2xl font-bold mb-4">Questions?</h2>
-            <p className="text-muted-foreground mb-6">
-              Contact us at{" "}
-              <a href="mailto:hello@ecoscan.app" className="text-primary hover:underline">
-                hello@ecoscan.app
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted mb-4">
+                <HelpCircle className="w-4 h-4 text-eco-leaf" />
+                <span className="text-sm font-medium">FAQ</span>
+              </div>
+              <h2 className="text-2xl font-display font-bold">Frequently Asked Questions</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {faqs.map((faq, index) => (
+                <motion.div
+                  key={faq.q}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-card rounded-xl p-5 border border-border"
+                >
+                  <h3 className="font-semibold mb-2">{faq.q}</h3>
+                  <p className="text-sm text-muted-foreground">{faq.a}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-10 text-center">
+              <p className="text-muted-foreground mb-4">Still have questions?</p>
+              <a 
+                href="mailto:ecoscan@gmail.com" 
+                className="text-eco-leaf hover:underline font-medium"
+              >
+                Contact us at ecoscan@gmail.com
               </a>
-            </p>
+            </div>
           </motion.div>
         </div>
       </main>
