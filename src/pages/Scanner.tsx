@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
@@ -15,13 +16,36 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 const Scanner = () => {
   const { toast } = useToast();
   const { playSuccessSound } = useSoundEffects();
+  const location = useLocation();
   
   const [scanCount, setScanCount] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<EcoScore | null>(null);
   const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
-  const [isDemo, setIsDemo] = useState(true);
+  const [isDemo, setIsDemo] = useState<boolean | null>(null);
+
+  // Check auth status on mount to determine demo mode
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const searchParams = new URLSearchParams(location.search);
+      const demoParam = searchParams.get("demo") === "true";
+      
+      // User is in demo mode if not authenticated OR if demo=true in URL
+      setIsDemo(!session || demoParam);
+    };
+
+    checkAuthStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const searchParams = new URLSearchParams(location.search);
+      const demoParam = searchParams.get("demo") === "true";
+      setIsDemo(!session || demoParam);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [location.search]);
 
   const maxScans = isDemo ? 3 : 30;
 
@@ -154,11 +178,15 @@ const Scanner = () => {
               <div className="w-8 h-8 rounded-xl eco-gradient flex items-center justify-center">
                 <Leaf className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="text-sm font-medium">
-                <span className="text-eco-leaf font-bold">{scanCount}</span>
-                <span className="text-muted-foreground"> / {maxScans} scans used</span>
-                {isDemo && <span className="text-eco-lime ml-2">(Demo)</span>}
-              </span>
+              {isDemo === null ? (
+                <span className="text-sm text-muted-foreground">Loading...</span>
+              ) : (
+                <span className="text-sm font-medium">
+                  <span className="text-eco-leaf font-bold">{scanCount}</span>
+                  <span className="text-muted-foreground"> / {maxScans} scans used</span>
+                  {isDemo && <span className="text-eco-lime ml-2">(Demo)</span>}
+                </span>
+              )}
             </motion.div>
           </motion.div>
 
