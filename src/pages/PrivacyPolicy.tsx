@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar";
-import { Leaf, Mail, ArrowLeft } from "lucide-react";
+import { Footer } from "@/components/layout/Footer";
+import { Mail, ArrowLeft, Leaf } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const PrivacyPolicy = () => {
@@ -214,14 +215,7 @@ const PrivacyPolicy = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 border-t border-border bg-card mt-12">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 EcoScan. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer minimal />
     </div>
   );
 };
