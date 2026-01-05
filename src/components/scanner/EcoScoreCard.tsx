@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, Droplets, Factory, Recycle, ExternalLink, Info, GitCompare } from "lucide-react";
+import { Leaf, Droplets, Factory, Recycle, ExternalLink, Info, GitCompare, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ProductDetailsModal, ProductComposition } from "./ProductDetailsModal";
 import { ProductComparisonModal } from "./ProductComparisonModal";
+import { AlternativeComparisonModal } from "./AlternativeComparisonModal";
 export interface EcoScore {
   grade: "S" | "A" | "B" | "C" | "D" | "F";
   carbonFootprint: number;
@@ -52,6 +54,31 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
   } | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState<ProductSuggestion | null>(null);
   const [comparisonSuggestion, setComparisonSuggestion] = useState<ProductSuggestion | null>(null);
+  
+  // State for comparing two alternatives
+  const [selectedForComparison, setSelectedForComparison] = useState<ProductSuggestion[]>([]);
+  const [showAlternativeComparison, setShowAlternativeComparison] = useState(false);
+
+  const toggleSelectForComparison = (product: ProductSuggestion) => {
+    setSelectedForComparison(prev => {
+      const isSelected = prev.some(p => p.name === product.name);
+      if (isSelected) {
+        return prev.filter(p => p.name !== product.name);
+      } else if (prev.length < 2) {
+        const newSelection = [...prev, product];
+        if (newSelection.length === 2) {
+          setShowAlternativeComparison(true);
+        }
+        return newSelection;
+      }
+      return prev;
+    });
+  };
+
+  const clearComparison = () => {
+    setSelectedForComparison([]);
+    setShowAlternativeComparison(false);
+  };
 
   return (
     <>
@@ -86,6 +113,16 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
           onClose={() => setComparisonSuggestion(null)}
           scannedProduct={score}
           suggestion={comparisonSuggestion}
+        />
+      )}
+
+      {/* Alternative Comparison Modal */}
+      {showAlternativeComparison && selectedForComparison.length === 2 && (
+        <AlternativeComparisonModal
+          isOpen={showAlternativeComparison}
+          onClose={clearComparison}
+          productA={selectedForComparison[0]}
+          productB={selectedForComparison[1]}
         />
       )}
       <div className="space-y-6">
@@ -203,94 +240,140 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Leaf className="w-5 h-5 text-eco-leaf" />
-              Greener Alternatives
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Leaf className="w-5 h-5 text-eco-leaf" />
+                Greener Alternatives
+              </h3>
+              {suggestions.length >= 2 && (
+                <div className="flex items-center gap-2">
+                  {selectedForComparison.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearComparison}
+                      className="text-muted-foreground"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Clear
+                    </Button>
+                  )}
+                  <Badge variant="secondary" className="text-xs">
+                    {selectedForComparison.length}/2 selected for comparison
+                  </Badge>
+                </div>
+              )}
+            </div>
             <div className="space-y-4">
-              {suggestions.map((product, index) => (
-                <motion.div
-                  key={product.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                >
-                  <Card className="hover:shadow-eco transition-shadow overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4 mb-3">
-                        {/* Product Image */}
-                        {product.imageUrl && (
-                          <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
-                            <img 
-                              src={product.imageUrl} 
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        )}
-                        <div className="flex-1 flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold">{product.name}</h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <span>{product.carbonFootprint} kg CO₂</span>
-                              <span>{product.biodegradable}% biodegradable</span>
+              {suggestions.map((product, index) => {
+                const isSelected = selectedForComparison.some(p => p.name === product.name);
+                return (
+                  <motion.div
+                    key={product.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                  >
+                    <Card className={`hover:shadow-eco transition-all overflow-hidden ${isSelected ? 'ring-2 ring-eco-leaf ring-offset-2' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="flex gap-4 mb-3">
+                          {/* Product Image */}
+                          {product.imageUrl && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                              <img 
+                                src={product.imageUrl} 
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
                             </div>
+                          )}
+                          <div className="flex-1 flex items-start justify-between">
+                            <div>
+                              <h4 className="font-semibold">{product.name}</h4>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <span>{product.carbonFootprint} kg CO₂</span>
+                                <span>{product.biodegradable}% biodegradable</span>
+                              </div>
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${gradeColors[product.grade].bg} ${gradeColors[product.grade].text}`}>
+                              {product.grade}
+                            </span>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${gradeColors[product.grade].bg} ${gradeColors[product.grade].text}`}>
-                            {product.grade}
-                          </span>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-shrink-0"
-                          onClick={() => setSelectedSuggestion(product)}
-                          title="View Details"
-                        >
-                          <Info className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="eco-outline"
-                          size="sm"
-                          className="flex-shrink-0"
-                          onClick={() => setComparisonSuggestion(product)}
-                          title="Compare Products"
-                        >
-                          <GitCompare className="w-4 h-4" />
-                          Compare
-                        </Button>
-                        <a
-                          href={product.amazonLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1"
-                        >
-                          <Button variant="outline" size="sm" className="w-full">
-                            Amazon
-                            <ExternalLink className="w-3 h-3" />
+                        <div className="flex gap-2 flex-wrap">
+                          {/* Select for comparison checkbox */}
+                          {suggestions.length >= 2 && (
+                            <Button
+                              variant={isSelected ? "eco" : "outline"}
+                              size="sm"
+                              className="flex-shrink-0"
+                              onClick={() => toggleSelectForComparison(product)}
+                              disabled={!isSelected && selectedForComparison.length >= 2}
+                              title={isSelected ? "Remove from comparison" : "Select for comparison"}
+                            >
+                              {isSelected ? (
+                                <>
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Selected
+                                </>
+                              ) : (
+                                <>
+                                  <GitCompare className="w-4 h-4 mr-1" />
+                                  Select
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex-shrink-0"
+                            onClick={() => setSelectedSuggestion(product)}
+                            title="View Details"
+                          >
+                            <Info className="w-4 h-4" />
                           </Button>
-                        </a>
-                        <a
-                          href={product.flipkartLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1"
-                        >
-                          <Button variant="outline" size="sm" className="w-full">
-                            Flipkart
-                            <ExternalLink className="w-3 h-3" />
+                          <Button
+                            variant="eco-outline"
+                            size="sm"
+                            className="flex-shrink-0"
+                            onClick={() => setComparisonSuggestion(product)}
+                            title="Compare with scanned product"
+                          >
+                            <GitCompare className="w-4 h-4" />
+                            vs Scanned
                           </Button>
-                        </a>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                          <a
+                            href={product.amazonLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 min-w-[80px]"
+                          >
+                            <Button variant="outline" size="sm" className="w-full">
+                              Amazon
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          </a>
+                          <a
+                            href={product.flipkartLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 min-w-[80px]"
+                          >
+                            <Button variant="outline" size="sm" className="w-full">
+                              Flipkart
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          </a>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}
