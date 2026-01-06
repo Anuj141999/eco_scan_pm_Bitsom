@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
@@ -14,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const Scanner = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { playSuccessSound } = useSoundEffects();
   const location = useLocation();
@@ -162,10 +164,10 @@ const Scanner = () => {
             </motion.div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4">
-              Product <span className="text-gradient-eco">Scanner</span>
+              {t('ecoScanner').split(' ')[0]} <span className="text-gradient-eco">{t('scanner')}</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-              Upload or capture a product image to analyze its eco-friendliness
+              {t('scannerDescription')}
             </p>
             
             {/* Scan Counter */}
@@ -179,12 +181,12 @@ const Scanner = () => {
                 <Leaf className="w-4 h-4 text-primary-foreground" />
               </div>
               {isDemo === null ? (
-                <span className="text-sm text-muted-foreground">Loading...</span>
+                <span className="text-sm text-muted-foreground">{t('loading')}</span>
               ) : (
                 <span className="text-sm font-medium">
                   <span className="text-eco-leaf font-bold">{scanCount}</span>
-                  <span className="text-muted-foreground"> / {maxScans} scans used</span>
-                  {isDemo && <span className="text-eco-lime ml-2">(Demo)</span>}
+                  <span className="text-muted-foreground"> / {maxScans} {t('scansUsed')}</span>
+                  {isDemo && <span className="text-eco-lime ml-2">({t('demo')})</span>}
                 </span>
               )}
             </motion.div>
@@ -206,23 +208,23 @@ const Scanner = () => {
                         <AlertCircle className="w-6 h-6 text-destructive" />
                       </div>
                       <div>
-                        <h3 className="font-display font-bold text-lg mb-2">Scan Limit Reached</h3>
+                        <h3 className="font-display font-bold text-lg mb-2">{t('scanLimitReached')}</h3>
                         <p className="text-sm text-muted-foreground mb-4">
                           {isDemo 
-                            ? "You've used all 3 free demo scans. Sign up to get more scans and unlock suggestions!"
-                            : "You've reached your monthly scan limit. Upgrade your plan for more scans."
+                            ? t('signUpForMore')
+                            : t('upgradeToPro')
                           }
                         </p>
                         <div className="flex gap-3">
                           <Link to="/pricing">
                             <Button variant="eco" size="sm">
-                              {isDemo ? "View Plans" : "Upgrade Now"}
+                              {isDemo ? t('getStarted') : t('upgradeToPro')}
                             </Button>
                           </Link>
                           {isDemo && (
                             <Link to="/auth?mode=signup">
                               <Button variant="eco-outline" size="sm">
-                                Sign Up Free
+                                {t('signUpNow')}
                               </Button>
                             </Link>
                           )}
@@ -256,7 +258,7 @@ const Scanner = () => {
                     <Sparkles className="w-8 h-8 text-eco-leaf" />
                   </div>
                 </motion.div>
-                <h3 className="text-xl font-display font-bold mb-3">Analyzing Product...</h3>
+                <h3 className="text-xl font-display font-bold mb-3">{t('analyzeProduct')}...</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   AI is identifying the product and calculating sustainability metrics
                 </p>
@@ -287,11 +289,11 @@ const Scanner = () => {
                           <Sparkles className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <p className="text-muted-foreground mb-6">
-                          Sign up to unlock product suggestions and compare alternatives!
+                          {t('signUpForSuggestions')}
                         </p>
                         <Link to="/auth?mode=signup">
                           <Button variant="eco" size="lg">
-                            Create Free Account
+                            {t('createAccount')}
                           </Button>
                         </Link>
                       </CardContent>
@@ -307,7 +309,7 @@ const Scanner = () => {
                 >
                   <Button variant="eco-outline" size="lg" onClick={resetScan}>
                     <ScanLine className="w-5 h-5" />
-                    Scan Another Product
+                    {t('scanAnotherProduct')}
                   </Button>
                 </motion.div>
               </motion.div>

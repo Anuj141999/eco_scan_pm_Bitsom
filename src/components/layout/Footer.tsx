@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Leaf, Mail, Shield, FileText, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
@@ -7,13 +8,15 @@ interface FooterProps {
 }
 
 export const Footer = ({ minimal = false }: FooterProps) => {
+  const { t } = useTranslation();
+
   if (minimal) {
     return (
       <footer className="py-8 border-t border-border bg-card mt-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 EcoScan. All rights reserved.
+              © 2024 EcoScan. {t('allRightsReserved')}
             </p>
             <LanguageSelector />
           </div>
@@ -35,8 +38,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
               <span className="font-display font-bold text-xl">EcoScan</span>
             </div>
             <p className="text-muted-foreground mb-4 max-w-sm">
-              Making sustainable shopping accessible for everyone. Scan products, 
-              understand their impact, and make eco-friendly choices.
+              {t('footerDescription')}
             </p>
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the planet
@@ -45,21 +47,21 @@ export const Footer = ({ minimal = false }: FooterProps) => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
+            <h4 className="font-semibold text-foreground mb-4">{t('quickLinks')}</h4>
             <ul className="space-y-3">
               <li>
                 <Link to="/scanner?demo=true" className="text-muted-foreground hover:text-eco-leaf transition-colors">
-                  Try Demo
+                  {t('tryDemo')}
                 </Link>
               </li>
               <li>
                 <Link to="/pricing" className="text-muted-foreground hover:text-eco-leaf transition-colors">
-                  Pricing
+                  {t('pricing')}
                 </Link>
               </li>
               <li>
                 <Link to="/auth" className="text-muted-foreground hover:text-eco-leaf transition-colors">
-                  Sign In
+                  {t('signIn')}
                 </Link>
               </li>
             </ul>
@@ -67,7 +69,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
 
           {/* Contact & Legal */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Contact & Legal</h4>
+            <h4 className="font-semibold text-foreground mb-4">{t('contact')}</h4>
             <ul className="space-y-3">
               <li>
                 <a 
@@ -84,7 +86,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
                   className="flex items-center gap-2 text-muted-foreground hover:text-eco-leaf transition-colors"
                 >
                   <Shield className="w-4 h-4" />
-                  Privacy Policy
+                  {t('privacyPolicy')}
                 </Link>
               </li>
               <li>
@@ -93,7 +95,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
                   className="flex items-center gap-2 text-muted-foreground hover:text-eco-leaf transition-colors"
                 >
                   <FileText className="w-4 h-4" />
-                  Terms of Service
+                  {t('termsOfService')}
                 </Link>
               </li>
             </ul>
@@ -103,11 +105,11 @@ export const Footer = ({ minimal = false }: FooterProps) => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 EcoScan. All rights reserved.
+            © 2024 EcoScan. {t('allRightsReserved')}
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground bg-eco-leaf/10 px-3 py-1 rounded-full">
-              🌱 Carbon Neutral
+              🌱 {t('carbonNeutral')}
             </span>
             <LanguageSelector />
           </div>
