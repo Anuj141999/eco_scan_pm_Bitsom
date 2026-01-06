@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Leaf, Menu, X, LogOut, Sparkles } from "lucide-react";
@@ -8,6 +9,7 @@ import { Session } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 
 export const Navbar = () => {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -67,9 +69,9 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/scanner', label: 'Scanner' },
-    { path: '/pricing', label: 'Pricing' },
+    { path: '/', label: t('home') },
+    { path: '/scanner', label: t('scanner') },
+    { path: '/pricing', label: t('pricing') },
   ];
 
   return (
@@ -147,12 +149,12 @@ export const Navbar = () => {
               <>
                 <Link to="/auth?mode=login">
                   <Button variant="ghost" size="sm" className="font-medium">
-                    Log in
+                    {t('signIn')}
                   </Button>
                 </Link>
                 <Link to="/auth?mode=signup">
                   <Button variant="eco" size="sm" className="font-medium shadow-eco hover:shadow-lifted">
-                    Sign up
+                    {t('tryDemo')}
                   </Button>
                 </Link>
               </>
@@ -250,10 +252,10 @@ export const Navbar = () => {
                 ) : (
                   <>
                     <Link to="/auth?mode=login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full">Log in</Button>
+                      <Button variant="outline" className="w-full">{t('signIn')}</Button>
                     </Link>
                     <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="eco" className="w-full shadow-eco">Sign up</Button>
+                      <Button variant="eco" className="w-full shadow-eco">{t('tryDemo')}</Button>
                     </Link>
                   </>
                 )}

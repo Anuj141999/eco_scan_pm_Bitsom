@@ -1,17 +1,23 @@
 import { useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { CameraPermissionDialog } from "./CameraPermissionDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploaderProps {
   onImageCapture: (imageData: string) => void;
 }
 
 export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -99,8 +105,13 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
     }
   };
 
-  const startCamera = async () => {
+  const requestCameraPermission = () => {
     playClickSound();
+    setShowPermissionDialog(true);
+  };
+
+  const handlePermissionAllow = async () => {
+    setShowPermissionDialog(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: "environment" } 
@@ -112,7 +123,16 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
       setShowCamera(true);
     } catch (err) {
       console.error("Error accessing camera:", err);
+      toast({
+        title: t("cameraAccessDenied"),
+        description: t("cameraAccessDeniedDesc"),
+        variant: "destructive",
+      });
     }
+  };
+
+  const handlePermissionDeny = () => {
+    setShowPermissionDialog(false);
   };
 
   const capturePhoto = () => {
@@ -153,6 +173,12 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
 
   return (
     <div className="space-y-8">
+      <CameraPermissionDialog
+        open={showPermissionDialog}
+        onAllow={handlePermissionAllow}
+        onDeny={handlePermissionDeny}
+      />
+      
       <AnimatePresence mode="wait">
         {showCamera ? (
           <motion.div
@@ -172,11 +198,11 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
             <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
               <Button variant="hero" size="lg" onClick={capturePhoto}>
                 <Camera className="w-5 h-5" />
-                Capture
+                {t("capture")}
               </Button>
               <Button variant="glass" size="lg" onClick={stopCamera}>
                 <X className="w-5 h-5" />
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </motion.div>
@@ -235,16 +261,16 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
               </motion.div>
               
               <h3 className="text-xl font-display font-bold mb-3">
-                {isDragging ? "Drop your image here" : "Upload Product Image"}
+                {isDragging ? t("dragDropText") : t("uploadProductImage")}
               </h3>
               <p className="text-sm text-muted-foreground mb-8 max-w-sm mx-auto">
-                Drag and drop an image, or click the buttons below to get started
+                {t("dragDropText")}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="eco" size="lg" onClick={startCamera}>
+                <Button variant="eco" size="lg" onClick={requestCameraPermission}>
                   <Camera className="w-5 h-5" />
-                  Take Photo
+                  {t("takePhoto")}
                 </Button>
                 <Button 
                   variant="eco-outline" 
@@ -255,7 +281,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
                   }}
                 >
                   <Upload className="w-5 h-5" />
-                  Upload Image
+                  {t("uploadImage")}
                 </Button>
               </div>
               <input
@@ -278,7 +304,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
         >
           <Button variant="hero" size="xl" onClick={analyzeImage} className="group">
             <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            Analyze Product
+            {t("analyzeProduct")}
           </Button>
         </motion.div>
       )}

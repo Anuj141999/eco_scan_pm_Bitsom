@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,12 +62,12 @@ const languages = [
 ];
 
 export const LanguageSelector = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const { i18n } = useTranslation();
+  
+  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleLanguageChange = (language: typeof languages[0]) => {
-    setSelectedLanguage(language);
-    // In a real app, this would trigger i18n language change
-    // For now, it's a UI placeholder
+    i18n.changeLanguage(language.code);
   };
 
   return (
@@ -75,8 +75,8 @@ export const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-9 gap-2 text-muted-foreground hover:text-foreground">
           <Globe className="w-4 h-4" />
-          <span className="hidden sm:inline">{selectedLanguage.flag} {selectedLanguage.nativeName}</span>
-          <span className="sm:hidden">{selectedLanguage.flag}</span>
+          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.nativeName}</span>
+          <span className="sm:hidden">{currentLanguage.flag}</span>
           <ChevronDown className="w-3 h-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
@@ -93,7 +93,7 @@ export const LanguageSelector = () => {
                 <span>{language.nativeName}</span>
                 <span className="text-xs text-muted-foreground">({language.name})</span>
               </div>
-              {selectedLanguage.code === language.code && (
+              {currentLanguage.code === language.code && (
                 <Check className="w-4 h-4 text-eco-leaf" />
               )}
             </DropdownMenuItem>
