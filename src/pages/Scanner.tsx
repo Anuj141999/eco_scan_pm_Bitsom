@@ -66,26 +66,26 @@ const Scanner = () => {
         body: { imageBase64: imageData }
       });
 
-      if (error) {
-        console.error('Error analyzing product:', error);
-        toast({
-          title: "Analysis Failed",
-          description: error.message || "Could not analyze the product. Please try again.",
-          variant: "destructive",
-        });
+        if (error) {
+          console.error('Error analyzing product:', error);
+          toast({
+            title: t("analysisFailed"),
+            description: error.message || t("analysisFailedDesc"),
+            variant: "destructive",
+          });
         setIsAnalyzing(false);
         return;
       }
 
-      if (data.error) {
-        toast({
-          title: "Analysis Failed",
-          description: data.error,
-          variant: "destructive",
-        });
-        setIsAnalyzing(false);
-        return;
-      }
+        if (data.error) {
+          toast({
+            title: t("analysisFailed"),
+            description: data.error,
+            variant: "destructive",
+          });
+          setIsAnalyzing(false);
+          return;
+        }
 
       const serverIsDemo = data.isDemo ?? true;
       setIsDemo(serverIsDemo);
@@ -117,14 +117,14 @@ const Scanner = () => {
       playSuccessSound();
 
       toast({
-        title: "Product Analyzed!",
-        description: `Identified: ${data.productName}`,
+        title: t("productAnalyzed"),
+        description: t("identified", { name: data.productName }),
       });
     } catch (err) {
       console.error('Error:', err);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: t("genericErrorTitle"),
+        description: t("genericErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -260,7 +260,7 @@ const Scanner = () => {
                 </motion.div>
                 <h3 className="text-xl font-display font-bold mb-3">{t('analyzeProduct')}...</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  AI is identifying the product and calculating sustainability metrics
+                  {t("analyzingSubtitle")}
                 </p>
               </motion.div>
             ) : result ? (

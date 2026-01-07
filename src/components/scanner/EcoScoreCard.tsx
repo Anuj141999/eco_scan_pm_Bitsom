@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Leaf, Droplets, Factory, Recycle, ExternalLink, Info, GitCompare, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,17 +34,29 @@ interface EcoScoreCardProps {
   showSuggestions: boolean;
 }
 
-const gradeColors: Record<string, { bg: string; text: string; label: string }> = {
-  S: { bg: "bg-gradient-to-r from-emerald-500 to-teal-400", text: "text-white", label: "Excellent" },
-  A: { bg: "bg-gradient-to-r from-green-500 to-emerald-400", text: "text-white", label: "Great" },
-  B: { bg: "bg-gradient-to-r from-lime-500 to-green-400", text: "text-white", label: "Good" },
-  C: { bg: "bg-gradient-to-r from-yellow-500 to-amber-400", text: "text-foreground", label: "Average" },
-  D: { bg: "bg-gradient-to-r from-orange-500 to-amber-500", text: "text-white", label: "Below Average" },
-  F: { bg: "bg-gradient-to-r from-red-500 to-orange-500", text: "text-white", label: "Poor" },
+const gradeColors: Record<string, { bg: string; text: string }> = {
+  S: { bg: "bg-gradient-to-r from-emerald-500 to-teal-400", text: "text-white" },
+  A: { bg: "bg-gradient-to-r from-green-500 to-emerald-400", text: "text-white" },
+  B: { bg: "bg-gradient-to-r from-lime-500 to-green-400", text: "text-white" },
+  C: { bg: "bg-gradient-to-r from-yellow-500 to-amber-400", text: "text-foreground" },
+  D: { bg: "bg-gradient-to-r from-orange-500 to-amber-500", text: "text-white" },
+  F: { bg: "bg-gradient-to-r from-red-500 to-orange-500", text: "text-white" },
 };
 
 export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCardProps) => {
+  const { t } = useTranslation();
+
   const gradeStyle = gradeColors[score.grade];
+  const gradeLabelMap: Record<string, string> = {
+    S: t("gradeExcellent"),
+    A: t("gradeGreat"),
+    B: t("gradeGood"),
+    C: t("gradeAverage"),
+    D: t("gradeBelowAverage"),
+    F: t("gradePoor"),
+  };
+  const gradeLabel = gradeLabelMap[score.grade] ?? "";
+
   const [selectedProduct, setSelectedProduct] = useState<{
     name: string;
     grade: string;
@@ -141,7 +154,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                 </div>
                 <div className="text-right">
                   <div className="text-6xl font-bold">{score.grade}</div>
-                  <p className="text-sm opacity-90">{gradeStyle.label}</p>
+                  <p className="text-sm opacity-90">{gradeLabel}</p>
                 </div>
               </div>
             </CardHeader>
@@ -151,7 +164,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Factory className="w-5 h-5 text-eco-earth" />
-                    <span className="font-medium">Carbon Footprint</span>
+                    <span className="font-medium">{t("carbonFootprint")}</span>
                   </div>
                   <span className="text-lg font-bold">{score.carbonFootprint} kg CO₂</span>
                 </div>
@@ -164,7 +177,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {score.carbonFootprint < 10 ? "Low impact" : score.carbonFootprint < 25 ? "Moderate impact" : "High impact"}
+                  {score.carbonFootprint < 10 ? t("lowImpact") : score.carbonFootprint < 25 ? t("moderateImpact") : t("highImpact")}
                 </p>
               </div>
 
@@ -173,7 +186,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Recycle className="w-5 h-5 text-eco-leaf" />
-                    <span className="font-medium">Biodegradable</span>
+                    <span className="font-medium">{t("biodegradable")}</span>
                   </div>
                   <span className="text-lg font-bold">{score.biodegradable}%</span>
                 </div>
@@ -186,7 +199,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {score.biodegradable >= 80 ? "Highly recyclable" : score.biodegradable >= 50 ? "Partially recyclable" : "Limited recyclability"}
+                  {score.biodegradable >= 80 ? t("highlyRecyclable") : score.biodegradable >= 50 ? t("partiallyRecyclable") : t("limitedRecyclability")}
                 </p>
               </div>
 
@@ -195,15 +208,15 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary">
                   <Leaf className="w-5 h-5 text-eco-leaf" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Eco Rating</p>
-                    <p className="font-semibold">{score.grade === "S" || score.grade === "A" ? "Recommended" : "Consider alternatives"}</p>
+                    <p className="text-xs text-muted-foreground">{t("ecoRating")}</p>
+                    <p className="font-semibold">{score.grade === "S" || score.grade === "A" ? t("recommended") : t("considerAlternatives")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary">
                   <Droplets className="w-5 h-5 text-eco-sky" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Water Impact</p>
-                    <p className="font-semibold">{score.biodegradable >= 70 ? "Low" : "Moderate"}</p>
+                    <p className="text-xs text-muted-foreground">{t("waterImpact")}</p>
+                    <p className="font-semibold">{score.biodegradable >= 70 ? t("impactLow") : t("impactModerate")}</p>
                   </div>
                 </div>
               </div>
@@ -225,7 +238,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                     })}
                   >
                     <Info className="w-4 h-4 mr-2" />
-                    View Full Details & Composition
+                    {t("viewFullDetailsComposition")}
                   </Button>
                 </div>
               )}
@@ -243,7 +256,7 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Leaf className="w-5 h-5 text-eco-leaf" />
-                Greener Alternatives
+                {t("alternatives")}
               </h3>
               {suggestions.length >= 2 && (
                 <div className="flex items-center gap-2">
@@ -255,12 +268,12 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                       className="text-muted-foreground"
                     >
                       <X className="w-4 h-4 mr-1" />
-                      Clear
-                    </Button>
+                       {t("clear")}
+                     </Button>
                   )}
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedForComparison.length}/2 selected for comparison
-                  </Badge>
+                   <Badge variant="secondary" className="text-xs">
+                     {t("selectedForComparison", { count: selectedForComparison.length })}
+                   </Badge>
                 </div>
               )}
             </div>
@@ -293,10 +306,10 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                           <div className="flex-1 flex items-start justify-between">
                             <div>
                               <h4 className="font-semibold">{product.name}</h4>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                <span>{product.carbonFootprint} kg CO₂</span>
-                                <span>{product.biodegradable}% biodegradable</span>
-                              </div>
+                               <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                 <span>{product.carbonFootprint} kg CO₂</span>
+                                 <span>{t("biodegradablePercent", { value: product.biodegradable })}</span>
+                               </div>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-sm font-bold ${gradeColors[product.grade].bg} ${gradeColors[product.grade].text}`}>
                               {product.grade}
@@ -312,19 +325,19 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                               className="flex-shrink-0"
                               onClick={() => toggleSelectForComparison(product)}
                               disabled={!isSelected && selectedForComparison.length >= 2}
-                              title={isSelected ? "Remove from comparison" : "Select for comparison"}
-                            >
+                               title={isSelected ? t("removeFromComparison") : t("selectForComparison")}
+                             >
                               {isSelected ? (
                                 <>
                                   <Check className="w-4 h-4 mr-1" />
-                                  Selected
-                                </>
-                              ) : (
-                                <>
-                                  <GitCompare className="w-4 h-4 mr-1" />
-                                  Select
-                                </>
-                              )}
+                                   {t("selected")}
+                                 </>
+                               ) : (
+                                 <>
+                                   <GitCompare className="w-4 h-4 mr-1" />
+                                   {t("select")}
+                                 </>
+                               )}
                             </Button>
                           )}
                           <Button
@@ -332,8 +345,8 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                             size="sm"
                             className="flex-shrink-0"
                             onClick={() => setSelectedSuggestion(product)}
-                            title="View Details"
-                          >
+                             title={t("viewDetails")}
+                           >
                             <Info className="w-4 h-4" />
                           </Button>
                           <Button
@@ -341,10 +354,10 @@ export const EcoScoreCard = ({ score, suggestions, showSuggestions }: EcoScoreCa
                             size="sm"
                             className="flex-shrink-0"
                             onClick={() => setComparisonSuggestion(product)}
-                            title="Compare with scanned product"
-                          >
-                            <GitCompare className="w-4 h-4" />
-                            vs Scanned
+                             title={t("compareWithScanned")}
+                           >
+                             <GitCompare className="w-4 h-4" />
+                             {t("vsScanned")}
                           </Button>
                           <a
                             href={product.amazonLink}

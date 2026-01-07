@@ -1,5 +1,21 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ArrowRight, Factory, Recycle, Leaf, TrendingDown, TrendingUp, Minus, Droplets, Package, Award, Calendar, TreePine, Car, Lightbulb } from "lucide-react";
+import {
+  ArrowRight,
+  Factory,
+  Recycle,
+  Leaf,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  Droplets,
+  Package,
+  Award,
+  Calendar,
+  TreePine,
+  Car,
+  Lightbulb,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -13,13 +29,13 @@ interface ProductComparisonModalProps {
   suggestion: ProductSuggestion;
 }
 
-const gradeColors: Record<string, { bg: string; text: string; label: string }> = {
-  S: { bg: "bg-gradient-to-r from-emerald-500 to-teal-400", text: "text-white", label: "Excellent" },
-  A: { bg: "bg-gradient-to-r from-green-500 to-emerald-400", text: "text-white", label: "Great" },
-  B: { bg: "bg-gradient-to-r from-lime-500 to-green-400", text: "text-white", label: "Good" },
-  C: { bg: "bg-gradient-to-r from-yellow-500 to-amber-400", text: "text-foreground", label: "Average" },
-  D: { bg: "bg-gradient-to-r from-orange-500 to-amber-500", text: "text-white", label: "Below Average" },
-  F: { bg: "bg-gradient-to-r from-red-500 to-orange-500", text: "text-white", label: "Poor" },
+const gradeColors: Record<string, { bg: string; text: string; labelKey: string }> = {
+  S: { bg: "bg-gradient-to-r from-emerald-500 to-teal-400", text: "text-white", labelKey: "gradeExcellent" },
+  A: { bg: "bg-gradient-to-r from-green-500 to-emerald-400", text: "text-white", labelKey: "gradeGreat" },
+  B: { bg: "bg-gradient-to-r from-lime-500 to-green-400", text: "text-white", labelKey: "gradeGood" },
+  C: { bg: "bg-gradient-to-r from-yellow-500 to-amber-400", text: "text-foreground", labelKey: "gradeAverage" },
+  D: { bg: "bg-gradient-to-r from-orange-500 to-amber-500", text: "text-white", labelKey: "gradeBelowAverage" },
+  F: { bg: "bg-gradient-to-r from-red-500 to-orange-500", text: "text-white", labelKey: "gradePoor" },
 };
 
 const gradeOrder = ["F", "D", "C", "B", "A", "S"];
@@ -30,12 +46,14 @@ export const ProductComparisonModal = ({
   scannedProduct,
   suggestion,
 }: ProductComparisonModalProps) => {
+  const { t } = useTranslation();
+
   const scannedGradeStyle = gradeColors[scannedProduct.grade];
   const suggestionGradeStyle = gradeColors[suggestion.grade];
 
   const carbonDiff = scannedProduct.carbonFootprint - suggestion.carbonFootprint;
   const bioDiff = suggestion.biodegradable - scannedProduct.biodegradable;
-  
+
   const scannedGradeIndex = gradeOrder.indexOf(scannedProduct.grade);
   const suggestionGradeIndex = gradeOrder.indexOf(suggestion.grade);
   const gradeImprovement = suggestionGradeIndex - scannedGradeIndex;
@@ -49,16 +67,16 @@ export const ProductComparisonModal = ({
   const getTrendIcon = (diff: number, higherIsBetter: boolean) => {
     const improved = higherIsBetter ? diff > 0 : diff < 0;
     const worse = higherIsBetter ? diff < 0 : diff > 0;
-    
+
     if (improved) return <TrendingUp className="w-4 h-4 text-green-500" />;
     if (worse) return <TrendingDown className="w-4 h-4 text-red-500" />;
     return <Minus className="w-4 h-4 text-muted-foreground" />;
   };
 
   const getWaterImpact = (biodegradable: number) => {
-    if (biodegradable >= 80) return { level: "Low", color: "text-green-600" };
-    if (biodegradable >= 50) return { level: "Moderate", color: "text-yellow-600" };
-    return { level: "High", color: "text-red-600" };
+    if (biodegradable >= 80) return { level: t("impactLow"), color: "text-green-600" };
+    if (biodegradable >= 50) return { level: t("impactModerate"), color: "text-yellow-600" };
+    return { level: t("impactHigh"), color: "text-red-600" };
   };
 
   const scannedWaterImpact = getWaterImpact(scannedProduct.biodegradable);
@@ -70,7 +88,7 @@ export const ProductComparisonModal = ({
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Leaf className="w-5 h-5 text-eco-leaf" />
-            Detailed Product Comparison
+            {t("detailedProductComparison")}
           </DialogTitle>
         </DialogHeader>
 
@@ -83,11 +101,11 @@ export const ProductComparisonModal = ({
           >
             {/* Scanned Product */}
             <div className={`rounded-xl p-4 ${scannedGradeStyle.bg} ${scannedGradeStyle.text}`}>
-              <p className="text-xs opacity-75 uppercase tracking-wide mb-1">Your Product</p>
+              <p className="text-xs opacity-75 uppercase tracking-wide mb-1">{t("yourProduct")}</p>
               <h3 className="font-semibold text-lg leading-tight mb-2">{scannedProduct.productName}</h3>
               <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold">{scannedProduct.grade}</span>
-                <span className="text-sm opacity-90">{scannedGradeStyle.label}</span>
+                <span className="text-sm opacity-90">{t(scannedGradeStyle.labelKey)}</span>
               </div>
               <p className="text-xs opacity-75 mt-2">{scannedProduct.category}</p>
             </div>
@@ -104,11 +122,11 @@ export const ProductComparisonModal = ({
 
             {/* Suggestion Product */}
             <div className={`rounded-xl p-4 ${suggestionGradeStyle.bg} ${suggestionGradeStyle.text}`}>
-              <p className="text-xs opacity-75 uppercase tracking-wide mb-1">Greener Alternative</p>
+              <p className="text-xs opacity-75 uppercase tracking-wide mb-1">{t("greenerAlternative")}</p>
               <h3 className="font-semibold text-lg leading-tight mb-2">{suggestion.name}</h3>
               <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold">{suggestion.grade}</span>
-                <span className="text-sm opacity-90">{suggestionGradeStyle.label}</span>
+                <span className="text-sm opacity-90">{t(suggestionGradeStyle.labelKey)}</span>
               </div>
               <p className="text-xs opacity-75 mt-2">{scannedProduct.category}</p>
             </div>
@@ -127,30 +145,24 @@ export const ProductComparisonModal = ({
             <div className="space-y-4 p-4 rounded-xl bg-secondary/30">
               <h4 className="font-semibold flex items-center gap-2">
                 <Factory className="w-5 h-5 text-eco-earth" />
-                Carbon Footprint
+                {t("carbonFootprint")}
               </h4>
-              
+
               <div className="space-y-3">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Your Product</span>
+                    <span className="text-muted-foreground">{t("yourProduct")}</span>
                     <span className="font-medium">{scannedProduct.carbonFootprint} kg CO₂</span>
                   </div>
-                  <Progress 
-                    value={Math.max(0, 100 - (scannedProduct.carbonFootprint / 50) * 100)} 
-                    className="h-3" 
-                  />
+                  <Progress value={Math.max(0, 100 - (scannedProduct.carbonFootprint / 50) * 100)} className="h-3" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Alternative</span>
+                    <span className="text-muted-foreground">{t("alternative")}</span>
                     <span className="font-medium">{suggestion.carbonFootprint} kg CO₂</span>
                   </div>
-                  <Progress 
-                    value={Math.max(0, 100 - (suggestion.carbonFootprint / 50) * 100)} 
-                    className="h-3" 
-                  />
+                  <Progress value={Math.max(0, 100 - (suggestion.carbonFootprint / 50) * 100)} className="h-3" />
                 </div>
               </div>
 
@@ -166,7 +178,7 @@ export const ProductComparisonModal = ({
                       {Math.abs(carbonDiff).toFixed(1)} kg CO₂ more per use
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">Same carbon footprint</span>
+                    <span className="text-muted-foreground">{t("sameCarbonFootprint")}</span>
                   )}
                 </span>
               </div>
@@ -176,21 +188,21 @@ export const ProductComparisonModal = ({
             <div className="space-y-4 p-4 rounded-xl bg-secondary/30">
               <h4 className="font-semibold flex items-center gap-2">
                 <Recycle className="w-5 h-5 text-eco-leaf" />
-                Biodegradability
+                {t("biodegradabilityLabel")}
               </h4>
-              
+
               <div className="space-y-3">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Your Product</span>
+                    <span className="text-muted-foreground">{t("yourProduct")}</span>
                     <span className="font-medium">{scannedProduct.biodegradable}%</span>
                   </div>
                   <Progress value={scannedProduct.biodegradable} className="h-3" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Alternative</span>
+                    <span className="text-muted-foreground">{t("alternative")}</span>
                     <span className="font-medium">{suggestion.biodegradable}%</span>
                   </div>
                   <Progress value={suggestion.biodegradable} className="h-3" />
@@ -209,7 +221,7 @@ export const ProductComparisonModal = ({
                       {Math.abs(bioDiff)}% less biodegradable
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">Same biodegradability</span>
+                    <span className="text-muted-foreground">{t("sameBiodegradability")}</span>
                   )}
                 </span>
               </div>
@@ -225,15 +237,15 @@ export const ProductComparisonModal = ({
           >
             <h4 className="font-semibold flex items-center gap-2 mb-4">
               <Droplets className="w-5 h-5 text-eco-sky" />
-              Water Pollution Impact
+              {t("waterPollutionImpact")}
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-3 rounded-lg bg-background/50 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Your Product</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("yourProduct")}</p>
                 <p className={`font-semibold ${scannedWaterImpact.color}`}>{scannedWaterImpact.level}</p>
               </div>
               <div className="p-3 rounded-lg bg-background/50 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Alternative</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("alternative")}</p>
                 <p className={`font-semibold ${suggestionWaterImpact.color}`}>{suggestionWaterImpact.level}</p>
               </div>
             </div>
@@ -251,23 +263,23 @@ export const ProductComparisonModal = ({
             >
               <h4 className="font-semibold flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-eco-leaf" />
-                Your Yearly Impact (Weekly Usage)
+                {t("yearlyImpactWeeklyUsage")}
               </h4>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-3 rounded-lg bg-background/60">
                   <Factory className="w-6 h-6 text-eco-earth mx-auto mb-2" />
                   <p className="text-2xl font-bold text-green-600">{yearlyCarbonSaved.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">kg CO₂ saved/year</p>
+                  <p className="text-xs text-muted-foreground">{t("kgCo2SavedYear")}</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-background/60">
                   <TreePine className="w-6 h-6 text-eco-leaf mx-auto mb-2" />
                   <p className="text-2xl font-bold text-green-600">{treesEquivalent}</p>
-                  <p className="text-xs text-muted-foreground">trees planted equivalent</p>
+                  <p className="text-xs text-muted-foreground">{t("treesPlantedEquivalent")}</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-background/60">
                   <Car className="w-6 h-6 text-eco-earth mx-auto mb-2" />
                   <p className="text-2xl font-bold text-green-600">{carMilesEquivalent}</p>
-                  <p className="text-xs text-muted-foreground">car miles avoided</p>
+                  <p className="text-xs text-muted-foreground">{t("carMilesAvoided")}</p>
                 </div>
               </div>
             </motion.div>
@@ -283,12 +295,12 @@ export const ProductComparisonModal = ({
             >
               <h4 className="font-semibold flex items-center gap-2 mb-4">
                 <Package className="w-5 h-5 text-eco-earth" />
-                Material Composition
+                {t("materialComposition")}
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
                 {scannedProduct.composition?.materials && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Your Product</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t("yourProduct")}</p>
                     <div className="flex flex-wrap gap-2">
                       {scannedProduct.composition.materials.map((material, idx) => (
                         <Badge key={idx} variant="secondary" className="text-xs">
@@ -300,7 +312,7 @@ export const ProductComparisonModal = ({
                 )}
                 {suggestion.composition?.materials && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Alternative</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t("alternative")}</p>
                     <div className="flex flex-wrap gap-2">
                       {suggestion.composition.materials.map((material, idx) => (
                         <Badge key={idx} variant="secondary" className="text-xs bg-eco-leaf/10 text-eco-leaf">
@@ -324,11 +336,11 @@ export const ProductComparisonModal = ({
             >
               <h4 className="font-semibold flex items-center gap-2 mb-4">
                 <Award className="w-5 h-5 text-yellow-500" />
-                Eco Certifications
+                {t("ecoCertifications")}
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Your Product</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("yourProduct")}</p>
                   {scannedProduct.composition?.certifications?.length ? (
                     <div className="flex flex-wrap gap-2">
                       {scannedProduct.composition.certifications.map((cert, idx) => (
@@ -338,11 +350,11 @@ export const ProductComparisonModal = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">No certifications</p>
+                    <p className="text-xs text-muted-foreground italic">{t("noCertifications")}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Alternative</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("alternative")}</p>
                   {suggestion.composition?.certifications?.length ? (
                     <div className="flex flex-wrap gap-2">
                       {suggestion.composition.certifications.map((cert, idx) => (
@@ -352,7 +364,7 @@ export const ProductComparisonModal = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">No certifications</p>
+                    <p className="text-xs text-muted-foreground italic">{t("noCertifications")}</p>
                   )}
                 </div>
               </div>
@@ -370,42 +382,38 @@ export const ProductComparisonModal = ({
           >
             <h4 className="font-semibold text-eco-leaf mb-2 flex items-center gap-2">
               <Leaf className="w-5 h-5" />
-              Environmental Impact Summary
+              {t("environmentalImpactSummary")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              By switching from <strong>{scannedProduct.productName}</strong> to{" "}
-              <strong>{suggestion.name}</strong>, you would:
+              {t("bySwitchingFromTo", { from: scannedProduct.productName, to: suggestion.name })}
             </p>
             <ul className="mt-3 space-y-2 text-sm">
               {carbonDiff > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
                   <TrendingDown className="w-4 h-4 flex-shrink-0" />
-                  Reduce carbon emissions by {carbonDiff.toFixed(1)} kg CO₂ per use
+                  {t("reduceCarbonPerUse", { value: carbonDiff.toFixed(1) })}
                 </li>
               )}
               {bioDiff > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
                   <TrendingUp className="w-4 h-4 flex-shrink-0" />
-                  Increase biodegradability by {bioDiff}%
+                  {t("increaseBiodegradability", { value: bioDiff })}
                 </li>
               )}
               {gradeImprovement > 0 && (
                 <li className="flex items-center gap-2 text-green-600">
                   <Leaf className="w-4 h-4 flex-shrink-0" />
-                  Improve eco-grade by {gradeImprovement} level{gradeImprovement > 1 ? "s" : ""}
+                  {t("improveEcoGrade", { value: gradeImprovement })}
                 </li>
               )}
-              {scannedWaterImpact.level !== suggestionWaterImpact.level && 
-               suggestionWaterImpact.level === "Low" && (
+              {scannedWaterImpact.level !== suggestionWaterImpact.level && suggestionWaterImpact.level === t("impactLow") && (
                 <li className="flex items-center gap-2 text-green-600">
                   <Droplets className="w-4 h-4 flex-shrink-0" />
-                  Reduce water pollution impact to Low
+                  {t("reduceWaterPollutionToLow")}
                 </li>
               )}
               {carbonDiff <= 0 && bioDiff <= 0 && gradeImprovement <= 0 && (
-                <li className="text-muted-foreground">
-                  Both products have similar environmental impact
-                </li>
+                <li className="text-muted-foreground">{t("similarEnvironmentalImpact")}</li>
               )}
             </ul>
           </motion.div>
@@ -419,13 +427,12 @@ export const ProductComparisonModal = ({
           >
             <h4 className="font-semibold text-amber-600 mb-2 flex items-center gap-2">
               <Lightbulb className="w-5 h-5" />
-              Eco Tip
+              {t("ecoTip")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              {carbonDiff > 0 
-                ? `Small changes add up! Switching to ${suggestion.name} weekly could save over ${yearlyCarbonSaved.toFixed(0)} kg of CO₂ emissions annually.`
-                : `Consider the full lifecycle of products - look for items with eco-certifications and recyclable packaging for maximum environmental benefit.`
-              }
+              {carbonDiff > 0
+                ? t("ecoTipSmallChanges", { product: suggestion.name, value: yearlyCarbonSaved.toFixed(0) })
+                : t("ecoTipLifecycle")}
             </p>
           </motion.div>
         </div>
