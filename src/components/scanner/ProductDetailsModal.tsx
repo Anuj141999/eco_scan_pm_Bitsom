@@ -1,5 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { X, Leaf, Factory, Recycle, Droplets, Package, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  Leaf,
+  Droplets,
+  Factory,
+  Recycle,
+  Package,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -49,7 +58,7 @@ const impactColors = {
   low: "text-green-500",
   medium: "text-yellow-500",
   high: "text-red-500",
-};
+} as const;
 
 export const ProductDetailsModal = ({
   isOpen,
@@ -61,14 +70,21 @@ export const ProductDetailsModal = ({
   biodegradable,
   composition,
 }: ProductDetailsModalProps) => {
+  const { t } = useTranslation();
   const gradeStyle = gradeColors[grade] || gradeColors.C;
+
+  const impactLabel = {
+    low: t("impactLow"),
+    medium: t("impactModerate"),
+    high: t("impactHigh"),
+  } as const;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between pr-8">
-            <span className="text-xl font-bold">Product Details</span>
+            <span className="text-xl font-bold">{t("productDetailsTitle")}</span>
             <Badge className={`${gradeStyle.bg} ${gradeStyle.text} text-lg px-3 py-1`}>
               {grade}
             </Badge>
@@ -97,15 +113,15 @@ export const ProductDetailsModal = ({
           >
             <h4 className="font-semibold flex items-center gap-2">
               <Leaf className="w-5 h-5 text-eco-leaf" />
-              Sustainability Metrics
+              {t("sustainabilityMetrics")}
             </h4>
-            
+
             <div className="grid gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2">
                     <Factory className="w-4 h-4 text-muted-foreground" />
-                    Carbon Footprint
+                    {t("carbonFootprint")}
                   </span>
                   <span className="font-medium">{carbonFootprint} kg CO₂</span>
                 </div>
@@ -116,7 +132,7 @@ export const ProductDetailsModal = ({
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2">
                     <Recycle className="w-4 h-4 text-muted-foreground" />
-                    Biodegradability
+                    {t("biodegradabilityLabel")}
                   </span>
                   <span className="font-medium">{biodegradable}%</span>
                 </div>
@@ -137,9 +153,9 @@ export const ProductDetailsModal = ({
             >
               <h4 className="font-semibold flex items-center gap-2">
                 <Package className="w-5 h-5 text-eco-earth" />
-                Material Composition
+                {t("materialComposition")}
               </h4>
-              
+
               <div className="space-y-3">
                 {composition.materials.map((material, index) => (
                   <motion.div
@@ -160,12 +176,12 @@ export const ProductDetailsModal = ({
                         <div className="flex gap-2 mt-1">
                           {material.isEcoFriendly && (
                             <Badge variant="outline" className="text-xs text-green-600 border-green-300">
-                              Eco-Friendly
+                              {t("ecoFriendly")}
                             </Badge>
                           )}
                           {material.recyclable && (
                             <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
-                              Recyclable
+                              {t("recyclableLabel")}
                             </Badge>
                           )}
                         </div>
@@ -188,26 +204,29 @@ export const ProductDetailsModal = ({
                 transition={{ delay: 0.4 }}
                 className="space-y-3"
               >
-                <h4 className="font-semibold">Packaging</h4>
+                <h4 className="font-semibold">{t("packagingLabel")}</h4>
                 <div className="p-3 rounded-lg bg-secondary/50 space-y-2">
                   <p className="font-medium">{composition.packaging.type}</p>
                   <div className="flex gap-2">
                     {composition.packaging.recyclable && (
                       <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20">
                         <Recycle className="w-3 h-3 mr-1" />
-                        Recyclable
+                        {t("recyclableLabel")}
                       </Badge>
                     )}
                     {composition.packaging.biodegradable && (
                       <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20">
                         <Leaf className="w-3 h-3 mr-1" />
-                        Biodegradable
+                        {t("biodegradable")}
                       </Badge>
                     )}
                     {!composition.packaging.recyclable && !composition.packaging.biodegradable && (
-                      <Badge variant="destructive" className="bg-red-500/10 text-red-600 hover:bg-red-500/20">
+                      <Badge
+                        variant="destructive"
+                        className="bg-red-500/10 text-red-600 hover:bg-red-500/20"
+                      >
                         <AlertTriangle className="w-3 h-3 mr-1" />
-                        Non-Recyclable
+                        {t("nonRecyclable")}
                       </Badge>
                     )}
                   </div>
@@ -228,28 +247,40 @@ export const ProductDetailsModal = ({
               >
                 <h4 className="font-semibold flex items-center gap-2">
                   <Droplets className="w-5 h-5 text-eco-sky" />
-                  Environmental Impact
+                  {t("environmentalImpact")}
                 </h4>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                    <Droplets className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.waterUsage]}`} />
-                    <p className="text-xs text-muted-foreground">Water Usage</p>
-                    <p className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.waterUsage]}`}>
-                      {composition.environmentalImpact.waterUsage}
+                    <Droplets
+                      className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.waterUsage]}`}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("waterUsage")}</p>
+                    <p
+                      className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.waterUsage]}`}
+                    >
+                      {impactLabel[composition.environmentalImpact.waterUsage]}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                    <Factory className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.energyConsumption]}`} />
-                    <p className="text-xs text-muted-foreground">Energy</p>
-                    <p className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.energyConsumption]}`}>
-                      {composition.environmentalImpact.energyConsumption}
+                    <Factory
+                      className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.energyConsumption]}`}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("energy")}</p>
+                    <p
+                      className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.energyConsumption]}`}
+                    >
+                      {impactLabel[composition.environmentalImpact.energyConsumption]}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                    <Package className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.wasteGeneration]}`} />
-                    <p className="text-xs text-muted-foreground">Waste</p>
-                    <p className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.wasteGeneration]}`}>
-                      {composition.environmentalImpact.wasteGeneration}
+                    <Package
+                      className={`w-5 h-5 mx-auto mb-1 ${impactColors[composition.environmentalImpact.wasteGeneration]}`}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("waste")}</p>
+                    <p
+                      className={`font-semibold capitalize ${impactColors[composition.environmentalImpact.wasteGeneration]}`}
+                    >
+                      {impactLabel[composition.environmentalImpact.wasteGeneration]}
                     </p>
                   </div>
                 </div>
@@ -267,7 +298,7 @@ export const ProductDetailsModal = ({
                 transition={{ delay: 0.6 }}
                 className="space-y-3"
               >
-                <h4 className="font-semibold">Certifications</h4>
+                <h4 className="font-semibold">{t("certificationsLabel")}</h4>
                 <div className="flex flex-wrap gap-2">
                   {composition.certifications.map((cert) => (
                     <Badge key={cert} variant="secondary" className="text-sm">

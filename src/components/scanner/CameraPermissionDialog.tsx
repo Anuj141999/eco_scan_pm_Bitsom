@@ -36,10 +36,10 @@ export const CameraPermissionDialog = ({
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center space-y-3">
             <p>{t("cameraPermissionDesc")}</p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Shield className="w-4 h-4 text-eco-leaf" />
-              <span>Your privacy is protected</span>
-            </div>
+             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+               <Shield className="w-4 h-4 text-eco-leaf" />
+               <span>{t("privacyProtected")}</span>
+             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">

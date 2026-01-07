@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
@@ -112,14 +112,46 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
 
   const handlePermissionAllow = async () => {
     setShowPermissionDialog(false);
+
+    // If a previous stream exists, stop it first.
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      // Prefer back camera on mobile, but don’t make it a hard requirement.
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+        });
+      } catch {
+        // Fallback for browsers/devices that don’t support facingMode properly.
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
       }
+
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        video.muted = true;
+
+        // Wait for the video element to have metadata, then try playing.
+        await new Promise<void>((resolve) => {
+          if (video.readyState >= 1) return resolve();
+          const handler = () => {
+            video.removeEventListener("loadedmetadata", handler);
+            resolve();
+          };
+          video.addEventListener("loadedmetadata", handler);
+        });
+
+        await video.play().catch(() => {
+          // Autoplay may still be blocked on some browsers; the stream is still attached.
+        });
+      }
+
       setShowCamera(true);
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -158,6 +190,16 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
     setShowCamera(false);
   };
 
+  // Ensure we never leave the camera stream open.
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   const clearImage = () => {
     setPreviewImage(null);
     if (fileInputRef.current) {
@@ -192,6 +234,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
               ref={videoRef}
               autoPlay
               playsInline
+              muted
               className="w-full aspect-video object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
