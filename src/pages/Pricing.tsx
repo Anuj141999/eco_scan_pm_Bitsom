@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/layout/Navbar";
 import { PricingCard } from "@/components/pricing/PricingCard";
 import { motion } from "framer-motion";
@@ -77,6 +78,7 @@ const faqs = [
 ];
 
 const Pricing = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -88,16 +90,16 @@ const Pricing = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-eco-leaf/10 text-eco-leaf mb-6">
-              <Leaf className="w-4 h-4" />
-              <span className="text-sm font-medium">Simple, Transparent Pricing</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              Choose Your <span className="text-gradient-eco">Eco Plan</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start with a free demo or choose a plan that fits your sustainable shopping needs.
-            </p>
+             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-eco-leaf/10 text-eco-leaf mb-6">
+               <Leaf className="w-4 h-4" />
+               <span className="text-sm font-medium">{t("pricingTitle")} {t("pricingHighlight")}</span>
+             </div>
+             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+               {t("pricingTitle")} <span className="text-gradient-eco">{t("pricingHighlight")}</span>
+             </h1>
+             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+               {t("pricingDescription")}
+             </p>
           </motion.div>
 
           {/* Free demo highlight */}
@@ -114,13 +116,13 @@ const Pricing = () => {
                     <Zap className="w-6 h-6 text-eco-leaf" />
                   </div>
                   <div>
-                    <p className="font-semibold">Try Free Demo</p>
-                    <p className="text-sm text-muted-foreground">3 free scans, no card required</p>
+                    <p className="font-semibold">{t("tryDemo")}</p>
+                    <p className="text-sm text-muted-foreground">{t("demoScansNoCard")}</p>
                   </div>
                 </div>
                 <Link to="/scanner?demo=true">
                   <Button variant="eco" className="shadow-lg shadow-eco-leaf/20">
-                    Start Now
+                    {t("getStarted")}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>

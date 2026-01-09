@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
@@ -51,6 +52,7 @@ const generateStrongPassword = (): string => {
 };
 
 const Auth = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup" | "forgot-password" | "reset-password">(
@@ -404,18 +406,18 @@ const Auth = () => {
               </div>
               <h1 className="text-2xl font-bold">
                 {mode === "login" 
-                  ? "Welcome back" 
+                  ? t("welcomeBack")
                   : mode === "signup" 
-                    ? "Create account"
+                    ? t("createAccount")
                     : mode === "reset-password"
                       ? "Set new password"
                       : "Reset password"}
               </h1>
               <p className="text-muted-foreground mt-2">
                 {mode === "login"
-                  ? "Sign in to continue scanning"
+                  ? t("signInToContinue")
                   : mode === "signup"
-                    ? "Start your eco-friendly journey"
+                    ? t("joinCommunity")
                     : mode === "reset-password"
                       ? "Enter and confirm your new password"
                       : "Enter your email to reset your password"}
@@ -657,7 +659,7 @@ const Auth = () => {
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-2"
                       >
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name">{t("fullName")}</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <Input
@@ -680,7 +682,7 @@ const Auth = () => {
                   </AnimatePresence>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t("emailAddress")}</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -702,7 +704,7 @@ const Auth = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{t("password")}</Label>
                       {mode === "signup" && (
                         <Button
                           type="button"
@@ -818,11 +820,11 @@ const Auth = () => {
                         >
                           <Leaf className="w-4 h-4" />
                         </motion.span>
-                        {mode === "login" ? "Signing in..." : "Creating account..."}
+                        {mode === "login" ? t("signingIn") : t("creatingAccount")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        {mode === "login" ? "Sign In" : "Create Account"}
+                        {mode === "login" ? t("signIn") : t("createAccount")}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     )}
@@ -883,11 +885,11 @@ const Auth = () => {
               className="mt-6 text-center"
             >
               <p className="text-sm text-muted-foreground mb-3">
-                Just want to try it out?
+                {t("justWantToTry")}
               </p>
               <Link to="/scanner?demo=true">
                 <Button variant="outline" size="sm">
-                  Try Free Demo (3 scans)
+                  {t("tryDemo")}
                 </Button>
               </Link>
             </motion.div>

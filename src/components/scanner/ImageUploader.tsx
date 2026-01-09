@@ -113,29 +113,51 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
   const handlePermissionAllow = async () => {
     setShowPermissionDialog(false);
 
-    // If a previous stream exists, stop it first.
+    // Stop any existing stream first.
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
+    // Render camera UI first so the <video> ref is available.
+    setShowCamera(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
     try {
-      // Prefer back camera on mobile, but don’t make it a hard requirement.
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: "environment" } },
+          audio: false,
         });
       } catch {
-        // Fallback for browsers/devices that don’t support facingMode properly.
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
 
       streamRef.current = stream;
-      // IMPORTANT: render the <video> first; we attach the stream in a useEffect.
-      setShowCamera(true);
+
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        video.muted = true;
+        await video.play().catch(() => {
+          // Some browsers block autoplay; stream is still attached.
+        });
+
+        window.setTimeout(() => {
+          const v = videoRef.current;
+          if (v && v.videoWidth === 0) {
+            toast({
+              title: t("cameraNotStreaming"),
+              description: t("cameraNotStreamingDesc"),
+              variant: "destructive",
+            });
+          }
+        }, 1200);
+      }
     } catch (err) {
       console.error("Error accessing camera:", err);
+      setShowCamera(false);
       toast({
         title: t("cameraAccessDenied"),
         description: t("cameraAccessDeniedDesc"),
@@ -165,35 +187,14 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setShowCamera(false);
   };
-
-  // Attach stream to the <video> after it is rendered.
-  useEffect(() => {
-    if (!showCamera) return;
-    const video = videoRef.current;
-    const stream = streamRef.current;
-    if (!video || !stream) return;
-
-    video.srcObject = stream;
-
-    const tryPlay = async () => {
-      await video.play().catch(() => {
-        // Some browsers block autoplay; stream is still attached.
-      });
-    };
-
-    if (video.readyState >= 1) {
-      void tryPlay();
-    } else {
-      const onLoaded = () => void tryPlay();
-      video.addEventListener("loadedmetadata", onLoaded, { once: true });
-      return () => video.removeEventListener("loadedmetadata", onLoaded);
-    }
-  }, [showCamera]);
 
   // Ensure we never leave the camera stream open.
   useEffect(() => {

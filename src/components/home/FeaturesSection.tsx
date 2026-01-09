@@ -1,34 +1,36 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Camera, BarChart3, Lightbulb, Shield, Leaf, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Camera, BarChart3, Lightbulb, Shield, Leaf, CheckCircle2 } from "lucide-react";
 
 const features = [
   {
     icon: Camera,
-    title: "Instant Scanning",
-    description: "Point your camera at any product and get instant sustainability insights in seconds.",
+    titleKey: "instantAnalysis",
+    descriptionKey: "instantAnalysisDesc",
     benefits: ["Photo or camera capture", "Works with any product", "AI-powered recognition"],
   },
   {
     icon: BarChart3,
-    title: "Detailed Metrics",
-    description: "See comprehensive eco-ratings including carbon footprint and biodegradability scores.",
+    titleKey: "detailedMetricsTitle",
+    descriptionKey: "detailedMetricsDesc",
     benefits: ["Carbon footprint in kg CO₂", "Biodegradable percentage", "Overall eco grade (S to F)"],
   },
   {
     icon: Lightbulb,
-    title: "Smart Suggestions",
-    description: "Get personalized recommendations for greener alternatives from Amazon & Flipkart.",
+    titleKey: "smartRecommendations",
+    descriptionKey: "smartRecommendationsDesc",
     benefits: ["Direct purchase links", "Price comparisons", "Better-rated alternatives"],
   },
   {
     icon: Shield,
-    title: "Verified Data",
-    description: "All sustainability data is AI-verified against industry standards and certifications.",
+    titleKey: "verifiedDataTitle",
+    descriptionKey: "verifiedDataDesc",
     benefits: ["Trusted AI analysis", "Industry benchmarks", "Regular data updates"],
   },
 ];
 
 export const FeaturesSection = () => {
+  const { t } = useTranslation();
   return (
     <section className="py-24 bg-card relative overflow-hidden">
       {/* Background decoration */}
@@ -45,14 +47,13 @@ export const FeaturesSection = () => {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-eco-leaf/10 text-eco-leaf mb-6">
             <Leaf className="w-4 h-4" />
-            <span className="text-sm font-medium">Why Choose EcoScan</span>
+            <span className="text-sm font-medium">{t("featuresTitle")} {t("featuresHighlight")}</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
-            Everything You Need to{" "}
-            <span className="text-gradient-eco">Shop Sustainably</span>
+            {t("featuresTitle")} <span className="text-gradient-eco">{t("featuresHighlight")}</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Simple, transparent, and accessible sustainability insights for every product you scan.
+            {t("featuresDescription")}
           </p>
         </motion.div>
 
@@ -73,9 +74,9 @@ export const FeaturesSection = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold mb-2 group-hover:text-eco-leaf transition-colors">
-                      {feature.title}
+                      {t(feature.titleKey)}
                     </h3>
-                    <p className="text-muted-foreground mb-4">{feature.description}</p>
+                    <p className="text-muted-foreground mb-4">{t(feature.descriptionKey)}</p>
                     <ul className="space-y-2">
                       {feature.benefits.map((benefit) => (
                         <li key={benefit} className="flex items-center gap-2 text-sm">
