@@ -152,7 +152,7 @@ export const Navbar = () => {
                     {t('signIn')}
                   </Button>
                 </Link>
-                <Link to="/auth?mode=signup">
+                <Link to="/scanner?demo=true">
                   <Button variant="eco" size="sm" className="font-medium shadow-eco hover:shadow-lifted">
                     {t('tryDemo')}
                   </Button>
@@ -254,7 +254,7 @@ export const Navbar = () => {
                     <Link to="/auth?mode=login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full">{t('signIn')}</Button>
                     </Link>
-                    <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/scanner?demo=true" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="eco" className="w-full shadow-eco">{t('tryDemo')}</Button>
                     </Link>
                   </>

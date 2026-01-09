@@ -132,26 +132,7 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
       }
 
       streamRef.current = stream;
-      const video = videoRef.current;
-      if (video) {
-        video.srcObject = stream;
-        video.muted = true;
-
-        // Wait for the video element to have metadata, then try playing.
-        await new Promise<void>((resolve) => {
-          if (video.readyState >= 1) return resolve();
-          const handler = () => {
-            video.removeEventListener("loadedmetadata", handler);
-            resolve();
-          };
-          video.addEventListener("loadedmetadata", handler);
-        });
-
-        await video.play().catch(() => {
-          // Autoplay may still be blocked on some browsers; the stream is still attached.
-        });
-      }
-
+      // IMPORTANT: render the <video> first; we attach the stream in a useEffect.
       setShowCamera(true);
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -189,6 +170,30 @@ export const ImageUploader = ({ onImageCapture }: ImageUploaderProps) => {
     }
     setShowCamera(false);
   };
+
+  // Attach stream to the <video> after it is rendered.
+  useEffect(() => {
+    if (!showCamera) return;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!video || !stream) return;
+
+    video.srcObject = stream;
+
+    const tryPlay = async () => {
+      await video.play().catch(() => {
+        // Some browsers block autoplay; stream is still attached.
+      });
+    };
+
+    if (video.readyState >= 1) {
+      void tryPlay();
+    } else {
+      const onLoaded = () => void tryPlay();
+      video.addEventListener("loadedmetadata", onLoaded, { once: true });
+      return () => video.removeEventListener("loadedmetadata", onLoaded);
+    }
+  }, [showCamera]);
 
   // Ensure we never leave the camera stream open.
   useEffect(() => {
