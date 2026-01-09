@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Leaf, Shield, Zap, Clock } from "lucide-react";
 
 export const CTASection = () => {
+  const { t } = useTranslation();
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background gradient */}
@@ -38,12 +40,10 @@ export const CTASection = () => {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6">
-            Ready to Make{" "}
-            <span className="text-gradient-eco">Smarter Choices</span>?
+            {t("ctaTitle")} <span className="text-gradient-eco">{t("ctaHighlight")}</span>
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Join thousands of eco-conscious shoppers making a real impact. 
-            Start with 3 free scans today — no credit card required.
+            {t("ctaDescription")}
           </p>
 
           {/* Trust badges */}
@@ -63,13 +63,13 @@ export const CTASection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/scanner?demo=true">
               <Button variant="eco" size="xl" className="shadow-lg shadow-eco-leaf/25">
-                Start Free Demo
+                {t("getStartedFree")}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link to="/pricing">
               <Button variant="outline" size="xl" className="border-2">
-                View Plans & Pricing
+                {t("viewPlansPricing")}
               </Button>
             </Link>
           </div>

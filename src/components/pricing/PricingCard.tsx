@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Sparkles, ArrowRight } from "lucide-react";
@@ -24,6 +25,7 @@ export const PricingCard = ({
   popular = false,
   delay = 0,
 }: PricingCardProps) => {
+  const { t } = useTranslation();
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   return (
@@ -39,7 +41,7 @@ export const PricingCard = ({
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-eco-leaf to-eco-mint text-white text-sm font-medium shadow-lg shadow-eco-leaf/30">
               <Sparkles className="w-3.5 h-3.5" />
-              Most Popular
+              {t("mostPopular")}
             </span>
           </div>
         )}
@@ -58,7 +60,7 @@ export const PricingCard = ({
               <span className="text-muted-foreground ml-1">/{period}</span>
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-eco-leaf/10 text-eco-leaf text-sm font-medium">
-              {searches} scans/month
+              {t("scansPerMonth", { count: searches })}
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pb-8">
@@ -72,13 +74,13 @@ export const PricingCard = ({
                 </li>
               ))}
             </ul>
-            <Button 
-              variant={popular ? "eco" : "outline"} 
+            <Button
+              variant={popular ? "eco" : "outline"}
               className={`w-full group ${popular ? "shadow-lg shadow-eco-leaf/20" : "border-2"}`}
               size="lg"
               onClick={() => setIsPaymentOpen(true)}
             >
-              Get Started
+              {t("getStarted")}
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </CardContent>

@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Leaf, ScanLine, ShieldCheck, TrendingUp, Sparkles, Play, ArrowRight, Users, Star, Zap } from "lucide-react";
 
 export const HeroSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-12">
       {/* Clean gradient background */}
@@ -81,11 +84,11 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight mb-6 leading-[1.1]"
           >
-            Know Your Product's{" "}
+            {t("heroTitle")}{" "}
             <br className="hidden sm:block" />
             <span className="relative inline-block">
-              <span className="text-gradient-eco">Eco Impact</span>
-              <motion.span 
+              <span className="text-gradient-eco">{t("heroTitleHighlight")}</span>
+              <motion.span
                 className="absolute -bottom-2 left-0 right-0 h-3 bg-eco-leaf/20 rounded-full -z-10"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
@@ -101,8 +104,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Scan any product to instantly see its carbon footprint, biodegradability score, 
-            and discover eco-friendly alternatives — powered by AI.
+            {t("heroDescription")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -115,13 +117,13 @@ export const HeroSection = () => {
             <Link to="/scanner?demo=true">
               <Button variant="eco" size="xl" className="group shadow-lg shadow-eco-leaf/25 hover:shadow-xl hover:shadow-eco-leaf/30 transition-all">
                 <Play className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                Try Free Demo
+                {t("startScanning")}
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/auth?mode=signup">
               <Button variant="outline" size="xl" className="group border-2">
-                Create Free Account
+                {t("createAccount")}
               </Button>
             </Link>
           </motion.div>

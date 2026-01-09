@@ -29,16 +29,33 @@ export const translations = {
       featuresDescription: "Our advanced AI technology makes it easy to understand the environmental impact of your everyday products.",
       instantAnalysis: "Instant Analysis",
       instantAnalysisDesc: "Get detailed eco-scores in seconds with our advanced AI technology",
+      detailedMetricsTitle: "Detailed Metrics",
+      detailedMetricsDesc: "See comprehensive eco-ratings including carbon footprint and biodegradability scores.",
       smartRecommendations: "Smart Recommendations",
       smartRecommendationsDesc: "Discover eco-friendly alternatives tailored to your preferences",
+      verifiedDataTitle: "Verified Data",
+      verifiedDataDesc: "Sustainability insights validated against common standards and certifications.",
       impactTracking: "Impact Tracking",
       impactTrackingDesc: "Monitor your environmental impact over time with detailed analytics",
-      
+
       // CTA Section
       ctaTitle: "Ready to Make a",
       ctaHighlight: "Difference?",
       ctaDescription: "Join thousands of eco-conscious consumers making smarter choices every day.",
       getStartedFree: "Get Started Free",
+      viewPlansPricing: "View Plans & Pricing",
+
+      // Pricing
+      demoScansNoCard: "3 free scans, no card required",
+      scansPerMonth: "{{count}} scans/month",
+
+      // Auth
+      fullName: "Full Name",
+      justWantToTry: "Just want to try it out?",
+
+      // Camera
+      cameraNotStreaming: "Camera not showing",
+      cameraNotStreamingDesc: "We couldn't start the camera feed. Try switching browsers or enabling camera access.",
       
       // Scanner Page
       ecoScanner: "Eco Scanner",
