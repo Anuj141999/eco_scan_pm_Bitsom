@@ -197,6 +197,7 @@ export const translations = {
       genericErrorDesc: "Something went wrong. Please try again.",
       analyzingSubtitle: "AI is identifying the product and calculating sustainability metrics",
     }
+  },
   es: {
     translation: {
       loading: "Cargando...",
