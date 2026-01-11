@@ -41,7 +41,7 @@ export const Footer = ({ minimal = false }: FooterProps) => {
               {t('footerDescription')}
             </p>
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the planet
+              {t('madeWithLove')} <Heart className="w-4 h-4 text-red-500 fill-red-500" /> {t('forThePlanet')}
             </p>
           </div>
 

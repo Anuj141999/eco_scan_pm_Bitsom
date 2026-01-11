@@ -213,6 +213,30 @@ export const translations = {
       genericErrorTitle: "Error",
       genericErrorDesc: "Something went wrong. Please try again.",
       analyzingSubtitle: "AI is identifying the product and calculating sustainability metrics",
+
+      // Feature benefits
+      benefitPhotoCapture: "Photo or camera capture",
+      benefitWorksAnyProduct: "Works with any product",
+      benefitAiRecognition: "AI-powered recognition",
+      benefitCarbonFootprint: "Carbon footprint in kg CO₂",
+      benefitBiodegradable: "Biodegradable percentage",
+      benefitEcoGrade: "Overall eco grade (S to F)",
+      benefitPurchaseLinks: "Direct purchase links",
+      benefitPriceComparisons: "Price comparisons",
+      benefitBetterAlternatives: "Better-rated alternatives",
+      benefitTrustedAi: "Trusted AI analysis",
+      benefitIndustryBenchmarks: "Industry benchmarks",
+      benefitRegularUpdates: "Regular data updates",
+
+      // Stats
+      statsActiveUsers: "Active Users",
+      statsProductsScanned: "Products Scanned",
+      statsAccuracyRate: "Accuracy Rate",
+      statsUserRating: "User Rating",
+
+      // Footer
+      madeWithLove: "Made with",
+      forThePlanet: "for the planet",
     }
   },
   es: {
@@ -389,6 +413,36 @@ export const translations = {
       genericErrorTitle: "Error",
       genericErrorDesc: "Algo salió mal. Inténtalo de nuevo.",
       analyzingSubtitle: "La IA está identificando el producto y calculando métricas de sostenibilidad",
+
+      // Feature benefits
+      benefitPhotoCapture: "Captura de foto o cámara",
+      benefitWorksAnyProduct: "Funciona con cualquier producto",
+      benefitAiRecognition: "Reconocimiento con IA",
+      benefitCarbonFootprint: "Huella de carbono en kg CO₂",
+      benefitBiodegradable: "Porcentaje biodegradable",
+      benefitEcoGrade: "Grado eco general (S a F)",
+      benefitPurchaseLinks: "Enlaces de compra directa",
+      benefitPriceComparisons: "Comparaciones de precios",
+      benefitBetterAlternatives: "Alternativas mejor calificadas",
+      benefitTrustedAi: "Análisis de IA confiable",
+      benefitIndustryBenchmarks: "Estándares de la industria",
+      benefitRegularUpdates: "Actualizaciones regulares",
+
+      // Stats
+      statsActiveUsers: "Usuarios Activos",
+      statsProductsScanned: "Productos Escaneados",
+      statsAccuracyRate: "Tasa de Precisión",
+      statsUserRating: "Calificación de Usuarios",
+
+      // Footer
+      madeWithLove: "Hecho con",
+      forThePlanet: "para el planeta",
+
+      detailedMetricsTitle: "Métricas Detalladas",
+      detailedMetricsDesc: "Consulta calificaciones ecológicas completas incluyendo huella de carbono y biodegradabilidad.",
+      verifiedDataTitle: "Datos Verificados",
+      verifiedDataDesc: "Información de sostenibilidad validada contra estándares y certificaciones comunes.",
+      viewPlansPricing: "Ver Planes y Precios",
     }
   },
   fr: {
@@ -741,6 +795,36 @@ export const translations = {
       genericErrorTitle: "Fehler",
       genericErrorDesc: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
       analyzingSubtitle: "KI erkennt das Produkt und berechnet Nachhaltigkeitsmetriken",
+
+      // Feature benefits
+      benefitPhotoCapture: "Foto- oder Kameraaufnahme",
+      benefitWorksAnyProduct: "Funktioniert mit jedem Produkt",
+      benefitAiRecognition: "KI-gestützte Erkennung",
+      benefitCarbonFootprint: "CO₂-Fußabdruck in kg",
+      benefitBiodegradable: "Biologisch abbaubarer Anteil",
+      benefitEcoGrade: "Öko-Gesamtnote (S bis F)",
+      benefitPurchaseLinks: "Direkte Kauflinks",
+      benefitPriceComparisons: "Preisvergleiche",
+      benefitBetterAlternatives: "Besser bewertete Alternativen",
+      benefitTrustedAi: "Vertrauenswürdige KI-Analyse",
+      benefitIndustryBenchmarks: "Branchenstandards",
+      benefitRegularUpdates: "Regelmäßige Updates",
+
+      // Stats
+      statsActiveUsers: "Aktive Nutzer",
+      statsProductsScanned: "Gescannte Produkte",
+      statsAccuracyRate: "Genauigkeitsrate",
+      statsUserRating: "Nutzerbewertung",
+
+      // Footer
+      madeWithLove: "Gemacht mit",
+      forThePlanet: "für den Planeten",
+
+      detailedMetricsTitle: "Detaillierte Metriken",
+      detailedMetricsDesc: "Umfassende Öko-Bewertungen mit CO₂-Fußabdruck und Bioabbaubarkeit.",
+      verifiedDataTitle: "Verifizierte Daten",
+      verifiedDataDesc: "Nachhaltigkeitsinformationen nach Standards und Zertifizierungen validiert.",
+      viewPlansPricing: "Pläne & Preise Ansehen",
     }
   },
   hi: {
@@ -917,6 +1001,36 @@ export const translations = {
       genericErrorTitle: "त्रुटि",
       genericErrorDesc: "कुछ गलत हुआ। कृपया फिर से प्रयास करें।",
       analyzingSubtitle: "AI उत्पाद की पहचान कर रहा है और टिकाऊपन मीट्रिक्स की गणना कर रहा है",
+
+      // Feature benefits
+      benefitPhotoCapture: "फोटो या कैमरा कैप्चर",
+      benefitWorksAnyProduct: "किसी भी उत्पाद के साथ काम करता है",
+      benefitAiRecognition: "AI-संचालित पहचान",
+      benefitCarbonFootprint: "किग्रा CO₂ में कार्बन फुटप्रिंट",
+      benefitBiodegradable: "बायोडिग्रेडेबल प्रतिशत",
+      benefitEcoGrade: "समग्र इको ग्रेड (S से F)",
+      benefitPurchaseLinks: "सीधे खरीद लिंक",
+      benefitPriceComparisons: "कीमत तुलना",
+      benefitBetterAlternatives: "बेहतर रेटेड विकल्प",
+      benefitTrustedAi: "विश्वसनीय AI विश्लेषण",
+      benefitIndustryBenchmarks: "उद्योग मानक",
+      benefitRegularUpdates: "नियमित डेटा अपडेट",
+
+      // Stats
+      statsActiveUsers: "सक्रिय उपयोगकर्ता",
+      statsProductsScanned: "स्कैन किए गए उत्पाद",
+      statsAccuracyRate: "सटीकता दर",
+      statsUserRating: "उपयोगकर्ता रेटिंग",
+
+      // Footer
+      madeWithLove: "बनाया गया",
+      forThePlanet: "ग्रह के लिए",
+
+      detailedMetricsTitle: "विस्तृत मेट्रिक्स",
+      detailedMetricsDesc: "कार्बन फुटप्रिंट और बायोडिग्रेडेबिलिटी सहित व्यापक इको-रेटिंग देखें।",
+      verifiedDataTitle: "सत्यापित डेटा",
+      verifiedDataDesc: "सामान्य मानकों और प्रमाणन के विरुद्ध मान्य स्थिरता जानकारी।",
+      viewPlansPricing: "योजनाएं और मूल्य देखें",
     }
   },
   zh: {
@@ -1093,6 +1207,36 @@ export const translations = {
       genericErrorTitle: "错误",
       genericErrorDesc: "发生错误。请重试。",
       analyzingSubtitle: "AI 正在识别产品并计算可持续指标",
+
+      // Feature benefits
+      benefitPhotoCapture: "拍照或相机捕捉",
+      benefitWorksAnyProduct: "适用于任何产品",
+      benefitAiRecognition: "AI驱动识别",
+      benefitCarbonFootprint: "碳足迹（kg CO₂）",
+      benefitBiodegradable: "可生物降解比例",
+      benefitEcoGrade: "整体环保等级（S至F）",
+      benefitPurchaseLinks: "直接购买链接",
+      benefitPriceComparisons: "价格比较",
+      benefitBetterAlternatives: "评分更高的替代品",
+      benefitTrustedAi: "可信赖的AI分析",
+      benefitIndustryBenchmarks: "行业基准",
+      benefitRegularUpdates: "定期数据更新",
+
+      // Stats
+      statsActiveUsers: "活跃用户",
+      statsProductsScanned: "已扫描产品",
+      statsAccuracyRate: "准确率",
+      statsUserRating: "用户评分",
+
+      // Footer
+      madeWithLove: "用心",
+      forThePlanet: "为地球而做",
+
+      detailedMetricsTitle: "详细指标",
+      detailedMetricsDesc: "查看完整的生态评级，包括碳足迹和可生物降解性。",
+      verifiedDataTitle: "验证数据",
+      verifiedDataDesc: "经行业标准和认证验证的可持续发展信息。",
+      viewPlansPricing: "查看计划与定价",
     }
   },
   ja: {
@@ -1269,6 +1413,36 @@ export const translations = {
       genericErrorTitle: "エラー",
       genericErrorDesc: "問題が発生しました。もう一度お試しください。",
       analyzingSubtitle: "AI が製品を識別し、サステナビリティ指標を計算しています",
+
+      // Feature benefits
+      benefitPhotoCapture: "写真またはカメラ撮影",
+      benefitWorksAnyProduct: "あらゆる製品に対応",
+      benefitAiRecognition: "AI認識",
+      benefitCarbonFootprint: "CO₂排出量（kg）",
+      benefitBiodegradable: "生分解性の割合",
+      benefitEcoGrade: "総合エコグレード（SからF）",
+      benefitPurchaseLinks: "直接購入リンク",
+      benefitPriceComparisons: "価格比較",
+      benefitBetterAlternatives: "より高評価の代替品",
+      benefitTrustedAi: "信頼できるAI分析",
+      benefitIndustryBenchmarks: "業界基準",
+      benefitRegularUpdates: "定期的なデータ更新",
+
+      // Stats
+      statsActiveUsers: "アクティブユーザー",
+      statsProductsScanned: "スキャン済み製品",
+      statsAccuracyRate: "精度",
+      statsUserRating: "ユーザー評価",
+
+      // Footer
+      madeWithLove: "愛を込めて",
+      forThePlanet: "地球のために",
+
+      detailedMetricsTitle: "詳細なメトリクス",
+      detailedMetricsDesc: "カーボンフットプリントや生分解性を含む包括的なエコ評価。",
+      verifiedDataTitle: "検証済みデータ",
+      verifiedDataDesc: "一般的な規格や認証に基づいて検証された持続可能性情報。",
+      viewPlansPricing: "プランと価格を見る",
     }
   },
 };

@@ -7,25 +7,25 @@ const features = [
     icon: Camera,
     titleKey: "instantAnalysis",
     descriptionKey: "instantAnalysisDesc",
-    benefits: ["Photo or camera capture", "Works with any product", "AI-powered recognition"],
+    benefitKeys: ["benefitPhotoCapture", "benefitWorksAnyProduct", "benefitAiRecognition"],
   },
   {
     icon: BarChart3,
     titleKey: "detailedMetricsTitle",
     descriptionKey: "detailedMetricsDesc",
-    benefits: ["Carbon footprint in kg CO₂", "Biodegradable percentage", "Overall eco grade (S to F)"],
+    benefitKeys: ["benefitCarbonFootprint", "benefitBiodegradable", "benefitEcoGrade"],
   },
   {
     icon: Lightbulb,
     titleKey: "smartRecommendations",
     descriptionKey: "smartRecommendationsDesc",
-    benefits: ["Direct purchase links", "Price comparisons", "Better-rated alternatives"],
+    benefitKeys: ["benefitPurchaseLinks", "benefitPriceComparisons", "benefitBetterAlternatives"],
   },
   {
     icon: Shield,
     titleKey: "verifiedDataTitle",
     descriptionKey: "verifiedDataDesc",
-    benefits: ["Trusted AI analysis", "Industry benchmarks", "Regular data updates"],
+    benefitKeys: ["benefitTrustedAi", "benefitIndustryBenchmarks", "benefitRegularUpdates"],
   },
 ];
 
@@ -78,10 +78,10 @@ export const FeaturesSection = () => {
                     </h3>
                     <p className="text-muted-foreground mb-4">{t(feature.descriptionKey)}</p>
                     <ul className="space-y-2">
-                      {feature.benefits.map((benefit) => (
-                        <li key={benefit} className="flex items-center gap-2 text-sm">
+                      {feature.benefitKeys.map((benefitKey) => (
+                        <li key={benefitKey} className="flex items-center gap-2 text-sm">
                           <CheckCircle2 className="w-4 h-4 text-eco-leaf flex-shrink-0" />
-                          <span>{benefit}</span>
+                          <span>{t(benefitKey)}</span>
                         </li>
                       ))}
                     </ul>
@@ -102,20 +102,20 @@ export const FeaturesSection = () => {
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
             {[
-              { value: "50K+", label: "Active Users" },
-              { value: "500K+", label: "Products Scanned" },
-              { value: "98%", label: "Accuracy Rate" },
-              { value: "4.9/5", label: "User Rating" },
+              { value: "50K+", labelKey: "statsActiveUsers" },
+              { value: "500K+", labelKey: "statsProductsScanned" },
+              { value: "98%", labelKey: "statsAccuracyRate" },
+              { value: "4.9/5", labelKey: "statsUserRating" },
             ].map((stat, index) => (
               <motion.div
-                key={stat.label}
+                key={stat.labelKey}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
               >
                 <p className="text-3xl md:text-4xl font-display font-bold text-eco-leaf mb-1">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <p className="text-sm text-muted-foreground">{t(stat.labelKey)}</p>
               </motion.div>
             ))}
           </div>
