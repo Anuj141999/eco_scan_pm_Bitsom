@@ -259,6 +259,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "College Student",
       "testimonials.review6.content": "Perfect for students on a budget! I can find affordable AND eco-friendly alternatives thanks to EcoScan.",
+
+      // History
+      "history.navTitle": "History",
+      "history.title": "Scan History",
+      "history.subtitle": "View all your previously scanned products",
+      "history.empty": "No scans yet",
+      "history.emptyDescription": "Start scanning products to build your history",
+      "history.startScanning": "Start Scanning",
+      "history.carbonFootprint": "Carbon",
+      "history.biodegradable": "Biodegradable",
+      "history.errorTitle": "Error loading history",
+      "history.errorDescription": "Could not load your scan history. Please try again.",
+      "history.deleteSuccess": "Scan deleted",
+      "history.deleteSuccessDescription": "The scan has been removed from your history.",
+      "history.deleteError": "Delete failed",
+      "history.deleteErrorDescription": "Could not delete the scan. Please try again.",
     }
   },
   es: {
@@ -487,6 +503,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "Estudiante Universitario",
       "testimonials.review6.content": "¡Perfecto para estudiantes con presupuesto limitado! Puedo encontrar alternativas económicas Y ecológicas gracias a EcoScan.",
+
+      // History
+      "history.navTitle": "Historial",
+      "history.title": "Historial de Escaneos",
+      "history.subtitle": "Ver todos tus productos escaneados anteriormente",
+      "history.empty": "Sin escaneos aún",
+      "history.emptyDescription": "Comienza a escanear productos para construir tu historial",
+      "history.startScanning": "Comenzar a Escanear",
+      "history.carbonFootprint": "Carbono",
+      "history.biodegradable": "Biodegradable",
+      "history.errorTitle": "Error al cargar historial",
+      "history.errorDescription": "No se pudo cargar tu historial de escaneos. Inténtalo de nuevo.",
+      "history.deleteSuccess": "Escaneo eliminado",
+      "history.deleteSuccessDescription": "El escaneo ha sido eliminado de tu historial.",
+      "history.deleteError": "Error al eliminar",
+      "history.deleteErrorDescription": "No se pudo eliminar el escaneo. Inténtalo de nuevo.",
     }
   },
   fr: {
@@ -684,6 +716,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "Étudiant",
       "testimonials.review6.content": "Parfait pour trouver des alternatives écologiques!",
+
+      // History
+      "history.navTitle": "Historique",
+      "history.title": "Historique des Scans",
+      "history.subtitle": "Voir tous vos produits scannés précédemment",
+      "history.empty": "Aucun scan encore",
+      "history.emptyDescription": "Commencez à scanner des produits pour construire votre historique",
+      "history.startScanning": "Commencer à Scanner",
+      "history.carbonFootprint": "Carbone",
+      "history.biodegradable": "Biodégradable",
+      "history.errorTitle": "Erreur de chargement",
+      "history.errorDescription": "Impossible de charger votre historique. Veuillez réessayer.",
+      "history.deleteSuccess": "Scan supprimé",
+      "history.deleteSuccessDescription": "Le scan a été supprimé de votre historique.",
+      "history.deleteError": "Échec de la suppression",
+      "history.deleteErrorDescription": "Impossible de supprimer le scan. Veuillez réessayer.",
     }
   },
   de: {
@@ -912,6 +960,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "Student",
       "testimonials.review6.content": "Perfekt für Studenten mit knappem Budget! Dank EcoScan kann ich erschwingliche UND umweltfreundliche Alternativen finden.",
+
+      // History
+      "history.navTitle": "Verlauf",
+      "history.title": "Scan-Verlauf",
+      "history.subtitle": "Alle zuvor gescannten Produkte anzeigen",
+      "history.empty": "Noch keine Scans",
+      "history.emptyDescription": "Beginnen Sie mit dem Scannen von Produkten, um Ihren Verlauf aufzubauen",
+      "history.startScanning": "Jetzt Scannen",
+      "history.carbonFootprint": "CO₂",
+      "history.biodegradable": "Biologisch abbaubar",
+      "history.errorTitle": "Fehler beim Laden",
+      "history.errorDescription": "Ihr Scan-Verlauf konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "history.deleteSuccess": "Scan gelöscht",
+      "history.deleteSuccessDescription": "Der Scan wurde aus Ihrem Verlauf entfernt.",
+      "history.deleteError": "Löschen fehlgeschlagen",
+      "history.deleteErrorDescription": "Der Scan konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
     }
   },
   hi: {
@@ -1140,6 +1204,22 @@ export const translations = {
       "testimonials.review6.name": "जेम्स विल्सन",
       "testimonials.review6.role": "कॉलेज छात्र",
       "testimonials.review6.content": "सीमित बजट वाले छात्रों के लिए एकदम सही! EcoScan की बदौलत मैं किफायती और पर्यावरण-अनुकूल विकल्प खोज सकता हूं।",
+
+      // History
+      "history.navTitle": "इतिहास",
+      "history.title": "स्कैन इतिहास",
+      "history.subtitle": "अपने पहले स्कैन किए गए सभी उत्पादों को देखें",
+      "history.empty": "अभी तक कोई स्कैन नहीं",
+      "history.emptyDescription": "अपना इतिहास बनाने के लिए उत्पादों को स्कैन करना शुरू करें",
+      "history.startScanning": "स्कैनिंग शुरू करें",
+      "history.carbonFootprint": "कार्बन",
+      "history.biodegradable": "बायोडिग्रेडेबल",
+      "history.errorTitle": "इतिहास लोड करने में त्रुटि",
+      "history.errorDescription": "आपका स्कैन इतिहास लोड नहीं हो सका। कृपया पुनः प्रयास करें।",
+      "history.deleteSuccess": "स्कैन हटाया गया",
+      "history.deleteSuccessDescription": "स्कैन आपके इतिहास से हटा दिया गया है।",
+      "history.deleteError": "हटाना विफल",
+      "history.deleteErrorDescription": "स्कैन हटाया नहीं जा सका। कृपया पुनः प्रयास करें।",
     }
   },
   zh: {
@@ -1368,6 +1448,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "大学生",
       "testimonials.review6.content": "非常适合预算有限的学生！多亏了EcoScan，我可以找到既实惠又环保的替代品。",
+
+      // History
+      "history.navTitle": "历史",
+      "history.title": "扫描历史",
+      "history.subtitle": "查看所有之前扫描的产品",
+      "history.empty": "暂无扫描",
+      "history.emptyDescription": "开始扫描产品以建立您的历史记录",
+      "history.startScanning": "开始扫描",
+      "history.carbonFootprint": "碳排放",
+      "history.biodegradable": "可生物降解",
+      "history.errorTitle": "加载历史记录失败",
+      "history.errorDescription": "无法加载您的扫描历史记录，请重试。",
+      "history.deleteSuccess": "扫描已删除",
+      "history.deleteSuccessDescription": "该扫描已从您的历史记录中删除。",
+      "history.deleteError": "删除失败",
+      "history.deleteErrorDescription": "无法删除扫描，请重试。",
     }
   },
   ja: {
@@ -1596,6 +1692,22 @@ export const translations = {
       "testimonials.review6.name": "James Wilson",
       "testimonials.review6.role": "大学生",
       "testimonials.review6.content": "予算が限られた学生にぴったり！EcoScanのおかげで、手頃でエコフレンドリーな代替品を見つけられます。",
+
+      // History
+      "history.navTitle": "履歴",
+      "history.title": "スキャン履歴",
+      "history.subtitle": "以前にスキャンした製品をすべて表示",
+      "history.empty": "まだスキャンがありません",
+      "history.emptyDescription": "製品をスキャンして履歴を作成しましょう",
+      "history.startScanning": "スキャンを開始",
+      "history.carbonFootprint": "カーボン",
+      "history.biodegradable": "生分解性",
+      "history.errorTitle": "履歴の読み込みエラー",
+      "history.errorDescription": "スキャン履歴を読み込めませんでした。再試行してください。",
+      "history.deleteSuccess": "スキャンを削除しました",
+      "history.deleteSuccessDescription": "スキャンが履歴から削除されました。",
+      "history.deleteError": "削除に失敗しました",
+      "history.deleteErrorDescription": "スキャンを削除できませんでした。再試行してください。",
     }
   },
 };

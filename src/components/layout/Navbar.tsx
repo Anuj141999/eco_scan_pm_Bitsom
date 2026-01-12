@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Leaf, Menu, X, LogOut, Sparkles } from "lucide-react";
+import { Leaf, Menu, X, LogOut, Sparkles, History } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +71,7 @@ export const Navbar = () => {
   const navLinks = [
     { path: '/', label: t('home') },
     { path: '/scanner', label: t('scanner') },
+    { path: '/history', label: t('history.navTitle'), authRequired: true },
     { path: '/pricing', label: t('pricing') },
   ];
 
@@ -103,26 +104,31 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.path}
-                to={link.path} 
-                className={`relative px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300 ${
-                  isActive(link.path) 
-                    ? 'text-eco-leaf' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                }`}
-              >
-                {link.label}
-                {isActive(link.path) && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="absolute inset-0 bg-eco-leaf/10 rounded-xl -z-10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              // Skip auth-required links if not logged in
+              if (link.authRequired && !session) return null;
+              
+              return (
+                <Link 
+                  key={link.path}
+                  to={link.path} 
+                  className={`relative px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300 ${
+                    isActive(link.path) 
+                      ? 'text-eco-leaf' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}
+                >
+                  {link.label}
+                  {isActive(link.path) && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 bg-eco-leaf/10 rounded-xl -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Auth Buttons */}
@@ -205,26 +211,31 @@ export const Navbar = () => {
             className="md:hidden glass border-b border-border/50 overflow-hidden"
           >
             <div className="container mx-auto px-4 py-6 flex flex-col gap-2">
-              {navLinks.map((link, index) => (
-                <motion.div
-                  key={link.path}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link 
-                    to={link.path} 
-                    className={`block text-base font-medium py-3 px-4 rounded-xl transition-all ${
-                      isActive(link.path)
-                        ? 'bg-eco-leaf/10 text-eco-leaf'
-                        : 'hover:bg-secondary/50'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
+              {navLinks.map((link, index) => {
+                // Skip auth-required links if not logged in
+                if (link.authRequired && !session) return null;
+                
+                return (
+                  <motion.div
+                    key={link.path}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link 
+                      to={link.path} 
+                      className={`block text-base font-medium py-3 px-4 rounded-xl transition-all ${
+                        isActive(link.path)
+                          ? 'bg-eco-leaf/10 text-eco-leaf'
+                          : 'hover:bg-secondary/50'
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                );
+              })}
               
               <motion.div 
                 className="flex gap-3 pt-4 mt-2 border-t border-border/50"
