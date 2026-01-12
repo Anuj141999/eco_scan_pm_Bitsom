@@ -411,6 +411,38 @@ Only respond with the JSON, no additional text or markdown.`
       throw new Error('No response from AI');
     }
 
+    // Helper function to repair common JSON issues
+    function repairJSON(jsonString: string): string {
+      let repaired = jsonString;
+      
+      // Remove any text before the first { and after the last }
+      const firstBrace = repaired.indexOf('{');
+      const lastBrace = repaired.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        repaired = repaired.slice(firstBrace, lastBrace + 1);
+      }
+      
+      // Remove trailing commas before } or ]
+      repaired = repaired.replace(/,\s*([}\]])/g, '$1');
+      
+      // Fix unescaped quotes within string values (common AI mistake)
+      // This is a simplified fix - matches strings and escapes internal quotes
+      repaired = repaired.replace(/"([^"]*?)"/g, (match, content) => {
+        // Don't process if it's already properly formatted
+        if (!content.includes('"')) return match;
+        const escaped = content.replace(/(?<!\\)"/g, '\\"');
+        return `"${escaped}"`;
+      });
+      
+      // Remove control characters that break JSON
+      repaired = repaired.replace(/[\x00-\x1F\x7F]/g, (char) => {
+        if (char === '\n' || char === '\r' || char === '\t') return char;
+        return '';
+      });
+      
+      return repaired;
+    }
+
     // Parse the JSON response
     let analysis: ProductAnalysis;
     try {
@@ -425,8 +457,42 @@ Only respond with the JSON, no additional text or markdown.`
       if (cleanContent.endsWith('```')) {
         cleanContent = cleanContent.slice(0, -3);
       }
+      cleanContent = cleanContent.trim();
       
-      analysis = JSON.parse(cleanContent.trim());
+      // First attempt: parse as-is
+      try {
+        analysis = JSON.parse(cleanContent);
+      } catch {
+        // Second attempt: try to repair common JSON issues
+        console.log('Initial JSON parse failed, attempting repair...');
+        const repairedContent = repairJSON(cleanContent);
+        try {
+          analysis = JSON.parse(repairedContent);
+          console.log('JSON repair successful');
+        } catch (repairError) {
+          // Third attempt: extract just the essential fields using regex
+          console.log('JSON repair failed, extracting essential fields...');
+          const productNameMatch = cleanContent.match(/"productName"\s*:\s*"([^"]+)"/);
+          const categoryMatch = cleanContent.match(/"category"\s*:\s*"([^"]+)"/);
+          const gradeMatch = cleanContent.match(/"grade"\s*:\s*"([SABCDF])"/);
+          const carbonMatch = cleanContent.match(/"carbonFootprint"\s*:\s*(\d+(?:\.\d+)?)/);
+          const biodegradableMatch = cleanContent.match(/"biodegradable"\s*:\s*(\d+(?:\.\d+)?)/);
+          
+          if (productNameMatch) {
+            analysis = {
+              productName: productNameMatch[1],
+              category: categoryMatch?.[1] || 'Consumer Goods',
+              grade: (gradeMatch?.[1] || 'C') as "S" | "A" | "B" | "C" | "D" | "F",
+              carbonFootprint: parseFloat(carbonMatch?.[1] || '20'),
+              biodegradable: parseFloat(biodegradableMatch?.[1] || '50'),
+              suggestions: []
+            };
+            console.log('Extracted essential fields successfully');
+          } else {
+            throw new Error('Could not extract product information from response');
+          }
+        }
+      }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
       throw new Error('Failed to parse product analysis');
