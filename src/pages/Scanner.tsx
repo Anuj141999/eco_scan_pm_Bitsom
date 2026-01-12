@@ -20,12 +20,43 @@ const Scanner = () => {
   const { playSuccessSound } = useSoundEffects();
   const location = useLocation();
   
-  const [scanCount, setScanCount] = useState(0);
+  // Restore state from sessionStorage on mount
+  const [scanCount, setScanCount] = useState(() => {
+    const saved = sessionStorage.getItem('scanCount');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<EcoScore | null>(null);
-  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
+  const [result, setResult] = useState<EcoScore | null>(() => {
+    const saved = sessionStorage.getItem('scanResult');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>(() => {
+    const saved = sessionStorage.getItem('scanSuggestions');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
+
+  // Persist result and suggestions to sessionStorage
+  useEffect(() => {
+    if (result) {
+      sessionStorage.setItem('scanResult', JSON.stringify(result));
+    } else {
+      sessionStorage.removeItem('scanResult');
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (suggestions.length > 0) {
+      sessionStorage.setItem('scanSuggestions', JSON.stringify(suggestions));
+    } else {
+      sessionStorage.removeItem('scanSuggestions');
+    }
+  }, [suggestions]);
+
+  useEffect(() => {
+    sessionStorage.setItem('scanCount', scanCount.toString());
+  }, [scanCount]);
 
   // Check auth status on mount to determine demo mode
   useEffect(() => {
