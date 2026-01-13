@@ -143,6 +143,13 @@ const Scanner = () => {
       }
 
       if (data?.error) {
+        const isCredits = data.code === 'credits_exhausted' || /credits|payment_required/i.test(data.error);
+        if (isCredits) {
+          setShowCreditsModal(true);
+          setIsAnalyzing(false);
+          return;
+        }
+
         toast({
           title: t('analysisFailed'),
           description: data.error,
