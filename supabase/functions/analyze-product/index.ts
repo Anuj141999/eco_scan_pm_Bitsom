@@ -397,15 +397,17 @@ Only respond with the JSON, no additional text or markdown.`
 
       if (response.status === 402) {
         // Lovable AI returns 402 when the workspace is out of credits.
+        // Return 200 with an error object so the SDK doesn't throw a runtime error.
         const outOfCredits = /payment_required|not enough credits/i.test(errorText);
         return new Response(
           JSON.stringify({
+            success: false,
             error: outOfCredits
               ? 'AI credits are exhausted. Please add credits and try again.'
               : 'Service temporarily unavailable. Please try again later.',
             code: outOfCredits ? 'credits_exhausted' : 'payment_required',
           }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
