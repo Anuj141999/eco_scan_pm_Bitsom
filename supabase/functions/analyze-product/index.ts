@@ -384,20 +384,31 @@ Only respond with the JSON, no additional text or markdown.`
       const errorText = await response.text();
       // Log detailed error server-side only for debugging
       console.error('Analysis service error [internal]:', response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Service is busy. Please try again in a few moments.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({
+            error: 'Service is busy. Please try again in a few moments.',
+            code: 'rate_limited',
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
         );
       }
+
       if (response.status === 402) {
+        // Lovable AI returns 402 when the workspace is out of credits.
+        const outOfCredits = /payment_required|not enough credits/i.test(errorText);
         return new Response(
-          JSON.stringify({ error: 'Service temporarily unavailable. Please try again later.' }),
+          JSON.stringify({
+            error: outOfCredits
+              ? 'AI credits are exhausted. Please add credits and try again.'
+              : 'Service temporarily unavailable. Please try again later.',
+            code: outOfCredits ? 'credits_exhausted' : 'payment_required',
+          }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       // Generic error for all other cases - no internal details
       throw new Error('Analysis service error');
     }

@@ -94,29 +94,53 @@ const Scanner = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
-        body: { imageBase64: imageData }
+        body: { imageBase64: imageData },
       });
 
-        if (error) {
-          console.error('Error analyzing product:', error);
-          toast({
-            title: t("analysisFailed"),
-            description: error.message || t("analysisFailedDesc"),
-            variant: "destructive",
-          });
+      if (error) {
+        const raw = error.message || '';
+        const statusMatch = raw.match(/returned\s+(\d{3})/i);
+        const status = statusMatch ? Number(statusMatch[1]) : undefined;
+
+        let serverError: string | undefined;
+        const jsonStart = raw.indexOf('{');
+        if (jsonStart !== -1) {
+          try {
+            const parsed = JSON.parse(raw.slice(jsonStart));
+            serverError = parsed?.error;
+          } catch {
+            // ignore
+          }
+        }
+
+        console.error('Error analyzing product:', { status, raw });
+
+        const isCredits = status === 402 && /credits|payment_required|not enough/i.test(raw);
+        const description =
+          serverError ||
+          (isCredits
+            ? 'AI credits are exhausted. Please add credits and try again.'
+            : error.message || t('analysisFailedDesc'));
+
+        toast({
+          title: t('analysisFailed'),
+          description,
+          variant: 'destructive',
+        });
+
         setIsAnalyzing(false);
         return;
       }
 
-        if (data.error) {
-          toast({
-            title: t("analysisFailed"),
-            description: data.error,
-            variant: "destructive",
-          });
-          setIsAnalyzing(false);
-          return;
-        }
+      if (data?.error) {
+        toast({
+          title: t('analysisFailed'),
+          description: data.error,
+          variant: 'destructive',
+        });
+        setIsAnalyzing(false);
+        return;
+      }
 
       const serverIsDemo = data.isDemo ?? true;
       setIsDemo(serverIsDemo);
