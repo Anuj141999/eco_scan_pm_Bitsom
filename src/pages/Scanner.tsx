@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/layout/Navbar";
 import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
 import { ProductComposition } from "@/components/scanner/ProductDetailsModal";
+import { CreditsExhaustedModal } from "@/components/scanner/CreditsExhaustedModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle, ScanLine, Leaf, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,8 @@ const Scanner = () => {
   });
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const lastImageRef = useRef<string | null>(null);
 
   // Persist result and suggestions to sessionStorage
   useEffect(() => {
@@ -88,6 +91,9 @@ const Scanner = () => {
       return;
     }
 
+    // Store image for potential retry
+    lastImageRef.current = imageData;
+
     setIsAnalyzing(true);
     setResult(null);
     setSuggestions([]);
@@ -116,11 +122,15 @@ const Scanner = () => {
         console.error('Error analyzing product:', { status, raw });
 
         const isCredits = status === 402 && /credits|payment_required|not enough/i.test(raw);
-        const description =
-          serverError ||
-          (isCredits
-            ? 'AI credits are exhausted. Please add credits and try again.'
-            : error.message || t('analysisFailedDesc'));
+
+        if (isCredits) {
+          // Show dedicated modal for credits issue
+          setShowCreditsModal(true);
+          setIsAnalyzing(false);
+          return;
+        }
+
+        const description = serverError || error.message || t('analysisFailedDesc');
 
         toast({
           title: t('analysisFailed'),
@@ -193,7 +203,22 @@ const Scanner = () => {
     setShowLimitWarning(false);
   };
 
+  const handleRetryWithLastImage = () => {
+    if (lastImageRef.current) {
+      setShowCreditsModal(false);
+      handleImageCapture(lastImageRef.current);
+    }
+  };
+
   return (
+    <>
+      {/* Credits Exhausted Modal */}
+      <CreditsExhaustedModal
+        open={showCreditsModal}
+        onClose={() => setShowCreditsModal(false)}
+        onRetry={handleRetryWithLastImage}
+        isRetrying={isAnalyzing}
+      />
     <div className="min-h-screen bg-background">
       {/* Background effects */}
       <div className="fixed inset-0 mesh-gradient pointer-events-none" />
@@ -382,6 +407,7 @@ const Scanner = () => {
         </div>
       </main>
     </div>
+    </>
   );
 };
 
