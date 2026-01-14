@@ -39,6 +39,7 @@ const Scanner = () => {
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [backendErrorCode, setBackendErrorCode] = useState<string | null>(null);
+  const [isFallbackData, setIsFallbackData] = useState(false);
   const lastImageRef = useRef<string | null>(null);
 
   // Persist result and suggestions to sessionStorage
@@ -99,6 +100,7 @@ const Scanner = () => {
     setResult(null);
     setSuggestions([]);
     setBackendErrorCode(null);
+    setIsFallbackData(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
@@ -168,6 +170,11 @@ const Scanner = () => {
 
       const serverIsDemo = data.isDemo ?? true;
       setIsDemo(serverIsDemo);
+      
+      // Check if this is fallback demo data
+      if (data.isFallback) {
+        setIsFallbackData(true);
+      }
 
       const score: EcoScore = {
         grade: data.grade,
@@ -321,6 +328,33 @@ const Scanner = () => {
                   >
                     ✕
                   </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Demo Fallback Notice */}
+          <AnimatePresence>
+            {isFallbackData && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6"
+              >
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400">
+                  <Sparkles className="w-5 h-5 flex-shrink-0" />
+                  <div className="flex-1 text-sm">
+                    <span className="font-semibold">{t('demoFallbackTitle', 'Demo Preview')}: </span>
+                    <span className="text-muted-foreground">
+                      {t('demoFallbackDesc', 'This is sample data to show how the scanner works. Sign up for real AI-powered analysis!')}
+                    </span>
+                  </div>
+                  <Link to="/auth?mode=signup">
+                    <Button variant="eco" size="sm" className="h-7">
+                      {t('signUpNow')}
+                    </Button>
+                  </Link>
                 </div>
               </motion.div>
             )}

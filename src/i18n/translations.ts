@@ -216,6 +216,8 @@ export const translations = {
       backendError: "Backend Error",
       addCreditsHint: "Add credits in Settings → Workspace → Usage",
       rateLimitHint: "Wait a moment and try again",
+      demoFallbackTitle: "Demo Preview",
+      demoFallbackDesc: "This is sample data to show how the scanner works. Sign up for real AI-powered analysis!",
 
       // Feature benefits
       benefitPhotoCapture: "Photo or camera capture",
