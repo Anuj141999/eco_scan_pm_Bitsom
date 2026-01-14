@@ -38,6 +38,7 @@ const Scanner = () => {
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [backendErrorCode, setBackendErrorCode] = useState<string | null>(null);
   const lastImageRef = useRef<string | null>(null);
 
   // Persist result and suggestions to sessionStorage
@@ -97,6 +98,7 @@ const Scanner = () => {
     setIsAnalyzing(true);
     setResult(null);
     setSuggestions([]);
+    setBackendErrorCode(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
@@ -145,9 +147,14 @@ const Scanner = () => {
       if (data?.error) {
         const isCredits = data.code === 'credits_exhausted' || /credits|payment_required/i.test(data.error);
         if (isCredits) {
+          setBackendErrorCode(data.code || 'credits_exhausted');
           setShowCreditsModal(true);
           setIsAnalyzing(false);
           return;
+        }
+        // Store any error code for banner display
+        if (data.code) {
+          setBackendErrorCode(data.code);
         }
 
         toast({
@@ -278,6 +285,46 @@ const Scanner = () => {
               )}
             </motion.div>
           </motion.div>
+
+          {/* Backend Error Banner */}
+          <AnimatePresence>
+            {backendErrorCode && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6"
+              >
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <div className="flex-1 text-sm">
+                    <span className="font-semibold">{t('backendError', 'Backend Error')}: </span>
+                    <code className="bg-amber-500/10 px-1.5 py-0.5 rounded text-xs font-mono">
+                      {backendErrorCode}
+                    </code>
+                    {backendErrorCode === 'credits_exhausted' && (
+                      <span className="ml-2 text-muted-foreground">
+                        — {t('addCreditsHint', 'Add credits in Settings → Workspace → Usage')}
+                      </span>
+                    )}
+                    {backendErrorCode === 'rate_limited' && (
+                      <span className="ml-2 text-muted-foreground">
+                        — {t('rateLimitHint', 'Wait a moment and try again')}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20"
+                    onClick={() => setBackendErrorCode(null)}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Limit Warning */}
           <AnimatePresence>
