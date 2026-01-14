@@ -397,8 +397,75 @@ Only respond with the JSON, no additional text or markdown.`
 
       if (response.status === 402) {
         // Lovable AI returns 402 when the workspace is out of credits.
-        // Return 200 with an error object so the SDK doesn't throw a runtime error.
         const outOfCredits = /payment_required|not enough credits/i.test(errorText);
+        
+        // In demo mode, return sample fallback data so users can see how the scanner works
+        if (isDemo && outOfCredits) {
+          console.log('Credits exhausted in demo mode - returning sample fallback data');
+          const sampleResult = {
+            productName: "Sample Product (Demo Mode)",
+            category: "Food & Beverages",
+            grade: "C" as const,
+            carbonFootprint: 18.5,
+            biodegradable: 35,
+            isDemo: true,
+            isFallback: true,
+            composition: {
+              materials: [
+                { name: "Plastic Packaging", percentage: 40, isEcoFriendly: false, recyclable: true },
+                { name: "Processed Ingredients", percentage: 50, isEcoFriendly: false, recyclable: false },
+                { name: "Natural Flavoring", percentage: 10, isEcoFriendly: true, recyclable: false }
+              ],
+              packaging: {
+                type: "Plastic Wrapper",
+                recyclable: true,
+                biodegradable: false
+              },
+              certifications: [],
+              environmentalImpact: {
+                waterUsage: "medium" as const,
+                energyConsumption: "medium" as const,
+                wasteGeneration: "high" as const
+              }
+            },
+            suggestions: [
+              {
+                name: "Eco-Friendly Alternative (Demo)",
+                grade: "A" as const,
+                amazonSearch: "eco friendly snacks organic",
+                flipkartSearch: "organic healthy snacks",
+                carbonFootprint: 8.2,
+                biodegradable: 85,
+                composition: {
+                  materials: [
+                    { name: "Recycled Paper", percentage: 60, isEcoFriendly: true, recyclable: true },
+                    { name: "Organic Ingredients", percentage: 35, isEcoFriendly: true, recyclable: false },
+                    { name: "Natural Colors", percentage: 5, isEcoFriendly: true, recyclable: false }
+                  ],
+                  packaging: {
+                    type: "Biodegradable Pouch",
+                    recyclable: true,
+                    biodegradable: true
+                  },
+                  certifications: ["Organic", "FSC Certified"],
+                  environmentalImpact: {
+                    waterUsage: "low" as const,
+                    energyConsumption: "low" as const,
+                    wasteGeneration: "low" as const
+                  }
+                }
+              }
+            ],
+            _notice: "This is sample data shown because AI credits are temporarily unavailable. Sign up for full analysis!"
+          };
+          
+          return new Response(
+            JSON.stringify(sampleResult),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // For authenticated users or non-credit issues, return the error
         return new Response(
           JSON.stringify({
             success: false,
