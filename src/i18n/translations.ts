@@ -213,6 +213,9 @@ export const translations = {
       genericErrorTitle: "Error",
       genericErrorDesc: "Something went wrong. Please try again.",
       analyzingSubtitle: "AI is identifying the product and calculating sustainability metrics",
+      backendError: "Backend Error",
+      addCreditsHint: "Add credits in Settings → Workspace → Usage",
+      rateLimitHint: "Wait a moment and try again",
 
       // Feature benefits
       benefitPhotoCapture: "Photo or camera capture",
@@ -451,6 +454,9 @@ export const translations = {
       genericErrorTitle: "Error",
       genericErrorDesc: "Algo salió mal. Inténtalo de nuevo.",
       analyzingSubtitle: "La IA está identificando el producto y calculando métricas de sostenibilidad",
+      backendError: "Error del servidor",
+      addCreditsHint: "Añade créditos en Configuración → Espacio de trabajo → Uso",
+      rateLimitHint: "Espera un momento e inténtalo de nuevo",
 
       // Feature benefits
       benefitPhotoCapture: "Captura de foto o cámara",
@@ -908,6 +914,9 @@ export const translations = {
       genericErrorTitle: "Fehler",
       genericErrorDesc: "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
       analyzingSubtitle: "KI erkennt das Produkt und berechnet Nachhaltigkeitsmetriken",
+      backendError: "Server-Fehler",
+      addCreditsHint: "Guthaben unter Einstellungen → Arbeitsbereich → Nutzung hinzufügen",
+      rateLimitHint: "Bitte warten und erneut versuchen",
 
       // Feature benefits
       benefitPhotoCapture: "Foto- oder Kameraaufnahme",
@@ -1152,6 +1161,9 @@ export const translations = {
       genericErrorTitle: "त्रुटि",
       genericErrorDesc: "कुछ गलत हुआ। कृपया फिर से प्रयास करें।",
       analyzingSubtitle: "AI उत्पाद की पहचान कर रहा है और टिकाऊपन मीट्रिक्स की गणना कर रहा है",
+      backendError: "सर्वर त्रुटि",
+      addCreditsHint: "सेटिंग्स → वर्कस्पेस → उपयोग में क्रेडिट जोड़ें",
+      rateLimitHint: "कृपया थोड़ा प्रतीक्षा करें और पुनः प्रयास करें",
 
       // Feature benefits
       benefitPhotoCapture: "फोटो या कैमरा कैप्चर",
@@ -1396,6 +1408,9 @@ export const translations = {
       genericErrorTitle: "错误",
       genericErrorDesc: "发生错误。请重试。",
       analyzingSubtitle: "AI 正在识别产品并计算可持续指标",
+      backendError: "服务器错误",
+      addCreditsHint: "在设置 → 工作区 → 使用中添加积分",
+      rateLimitHint: "请稍候再试",
 
       // Feature benefits
       benefitPhotoCapture: "拍照或相机捕捉",
@@ -1640,6 +1655,9 @@ export const translations = {
       genericErrorTitle: "エラー",
       genericErrorDesc: "問題が発生しました。もう一度お試しください。",
       analyzingSubtitle: "AI が製品を識別し、サステナビリティ指標を計算しています",
+      backendError: "サーバーエラー",
+      addCreditsHint: "設定 → ワークスペース → 使用量 でクレジットを追加",
+      rateLimitHint: "しばらくお待ちいただき、もう一度お試しください",
 
       // Feature benefits
       benefitPhotoCapture: "写真またはカメラ撮影",
