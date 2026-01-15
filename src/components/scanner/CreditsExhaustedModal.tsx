@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, CreditCard } from "lucide-react";
+import { AlertTriangle, RefreshCw, ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface CreditsExhaustedModalProps {
@@ -38,6 +38,14 @@ export function CreditsExhaustedModal({ open, onClose, onRetry, isRetrying }: Cr
               <li>{t("step3Credits", "Return here and retry")}</li>
             </ol>
           </div>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() => window.open("https://lovable.dev/settings", "_blank")}
+          >
+            <ExternalLink className="w-4 h-4" />
+            {t("openLovableSettings", "Open Lovable Settings")}
+          </Button>
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
