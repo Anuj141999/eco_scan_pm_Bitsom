@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Zap, Database } from "lucide-react";
+import { Leaf, Database } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,7 +11,6 @@ interface ScanQuotaDisplayProps {
   isDemo: boolean;
   resetDate: Date | null;
   cachedScans?: number;
-  isOfflineMode?: boolean;
 }
 
 export function ScanQuotaDisplay({
@@ -21,7 +20,6 @@ export function ScanQuotaDisplay({
   isDemo,
   resetDate,
   cachedScans = 0,
-  isOfflineMode = false,
 }: ScanQuotaDisplayProps) {
   const { t } = useTranslation();
   const percentage = Math.round((used / limit) * 100);
@@ -63,22 +61,6 @@ export function ScanQuotaDisplay({
           
           {/* Status badges */}
           <div className="flex items-center gap-2">
-            {isOfflineMode && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 text-amber-600 text-xs">
-                      <Zap className="w-3 h-3" />
-                      {t("offline", "Offline")}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("offlineModeDesc", "Using local analysis - no credits consumed")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            
             {cachedScans > 0 && (
               <TooltipProvider>
                 <Tooltip>

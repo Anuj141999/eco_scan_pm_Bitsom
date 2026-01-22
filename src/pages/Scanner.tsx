@@ -8,7 +8,7 @@ import { ProductComposition } from "@/components/scanner/ProductDetailsModal";
 import { CreditsExhaustedModal } from "@/components/scanner/CreditsExhaustedModal";
 import { ScanQuotaDisplay } from "@/components/scanner/ScanQuotaDisplay";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, ScanLine, Leaf, Sparkles, WifiOff } from "lucide-react";
+import { AlertCircle, ScanLine, Leaf, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -44,7 +44,6 @@ const Scanner = () => {
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [backendErrorCode, setBackendErrorCode] = useState<string | null>(null);
   const [isFallbackData, setIsFallbackData] = useState(false);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [usedCache, setUsedCache] = useState(false);
   const lastImageRef = useRef<string | null>(null);
 
@@ -124,7 +123,6 @@ const Scanner = () => {
     setBackendErrorCode(null);
     setIsFallbackData(false);
     setUsedCache(false);
-    setIsOfflineMode(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
@@ -152,18 +150,13 @@ const Scanner = () => {
         const isCredits = status === 402 && /credits|payment_required|not enough/i.test(raw);
 
         if (isCredits) {
-          // Use offline fallback mode instead of blocking the user
-          console.log('Credits exhausted - using offline fallback mode');
+          // Use fallback mode instead of blocking the user
+          console.log('Credits exhausted - using fallback mode');
           const fallback = getRandomFallbackProduct();
           setResult(fallback.result);
           setSuggestions(fallback.suggestions);
-          setIsOfflineMode(true);
           setIsFallbackData(true);
           playSuccessSound();
-          toast({
-            title: t("offlineModeActive", "Offline Mode"),
-            description: t("offlineModeDesc", "Using local analysis - no credits consumed"),
-          });
           setIsAnalyzing(false);
           return;
         }
@@ -183,19 +176,14 @@ const Scanner = () => {
       if (data?.error) {
         const isCredits = data.code === 'credits_exhausted' || /credits|payment_required/i.test(data.error);
         if (isCredits) {
-          // Use offline fallback mode instead of blocking the user
-          console.log('Credits exhausted (from data) - using offline fallback mode');
+          // Use fallback mode instead of blocking the user
+          console.log('Credits exhausted (from data) - using fallback mode');
           const fallback = getRandomFallbackProduct();
           setResult(fallback.result);
           setSuggestions(fallback.suggestions);
-          setIsOfflineMode(true);
           setIsFallbackData(true);
           setBackendErrorCode(data.code || 'credits_exhausted');
           playSuccessSound();
-          toast({
-            title: t("offlineModeActive", "Offline Mode"),
-            description: t("offlineModeDesc", "Using local analysis - no credits consumed"),
-          });
           setIsAnalyzing(false);
           return;
         }
@@ -330,7 +318,6 @@ const Scanner = () => {
                 isDemo={quota.isDemo}
                 resetDate={quota.resetDate}
                 cachedScans={getCacheStats().cachedScans}
-                isOfflineMode={isOfflineMode}
               />
             )}
           </motion.div>
