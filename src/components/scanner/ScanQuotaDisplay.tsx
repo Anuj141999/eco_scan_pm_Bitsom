@@ -49,12 +49,13 @@ export function ScanQuotaDisplay({
             <div>
               <p className="text-sm font-medium">
                 <span className={`font-bold ${isExhausted ? 'text-destructive' : 'text-eco-leaf'}`}>
-                  {remaining}
+                  {used}
                 </span>
-                <span className="text-muted-foreground"> / {limit} {t("scansRemaining", "scans left")}</span>
+                <span className="text-muted-foreground"> / {limit} {t("scansUsed", "scans used")}</span>
               </p>
               <p className="text-xs text-muted-foreground">
                 {isDemo ? t("demoMode", "Demo Mode") : t("authenticatedMode", "Full Access")}
+                <span className="ml-2">• {t("scansLeft", { count: remaining, defaultValue: `${remaining} left` })}</span>
               </p>
             </div>
           </div>
