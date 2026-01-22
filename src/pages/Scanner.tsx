@@ -152,7 +152,7 @@ const Scanner = () => {
         if (isCredits) {
           // Use fallback mode instead of blocking the user
           console.log('Credits exhausted - using fallback mode');
-          const fallback = getRandomFallbackProduct();
+          const fallback = getRandomFallbackProduct(isDemo ?? true);
           setResult(fallback.result);
           setSuggestions(fallback.suggestions);
           setIsFallbackData(true);
@@ -178,7 +178,7 @@ const Scanner = () => {
         if (isCredits) {
           // Use fallback mode instead of blocking the user
           console.log('Credits exhausted (from data) - using fallback mode');
-          const fallback = getRandomFallbackProduct();
+          const fallback = getRandomFallbackProduct(isDemo ?? true);
           setResult(fallback.result);
           setSuggestions(fallback.suggestions);
           setIsFallbackData(true);
@@ -447,31 +447,6 @@ const Scanner = () => {
                   showSuggestions={!isDemo}
                 />
                 
-                {isDemo && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-8"
-                  >
-                    <Card className="glass-card border-eco-leaf/20 shadow-eco overflow-hidden">
-                      <CardContent className="p-8 text-center">
-                        <div className="w-12 h-12 rounded-2xl eco-gradient flex items-center justify-center mx-auto mb-4 shadow-eco">
-                          <Sparkles className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <p className="text-muted-foreground mb-6">
-                          {t('signUpForSuggestions')}
-                        </p>
-                        <Link to="/auth?mode=signup">
-                          <Button variant="eco" size="lg">
-                            {t('createAccount')}
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
                 <motion.div 
                   className="mt-10 text-center"
                   initial={{ opacity: 0 }}
