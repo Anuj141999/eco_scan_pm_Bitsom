@@ -399,16 +399,17 @@ Only respond with the JSON, no additional text or markdown.`
         // Lovable AI returns 402 when the workspace is out of credits.
         const outOfCredits = /payment_required|not enough credits/i.test(errorText);
         
-        // In demo mode, return sample fallback data so users can see how the scanner works
-        if (isDemo && outOfCredits) {
-          console.log('Credits exhausted in demo mode - returning sample fallback data');
+        // Return sample fallback data for ALL users when credits are exhausted
+        // This ensures the app remains functional even without AI credits
+        if (outOfCredits) {
+          console.log(`Credits exhausted for ${isDemo ? 'demo' : 'authenticated'} user - returning sample fallback data`);
           const sampleResult = {
-            productName: "Sample Product (Demo Mode)",
+            productName: "Sample Product (Offline Mode)",
             category: "Food & Beverages",
             grade: "C" as const,
             carbonFootprint: 18.5,
             biodegradable: 35,
-            isDemo: true,
+            isDemo: isDemo,
             isFallback: true,
             composition: {
               materials: [
@@ -430,16 +431,16 @@ Only respond with the JSON, no additional text or markdown.`
             },
             suggestions: [
               {
-                name: "Eco-Friendly Alternative (Demo)",
+                name: "Slurrp Farm Millet Puffs",
                 grade: "A" as const,
-                amazonSearch: "eco friendly snacks organic",
-                flipkartSearch: "organic healthy snacks",
+                amazonSearch: "slurrp farm millet puffs organic",
+                flipkartSearch: "slurrp farm millet puffs",
                 carbonFootprint: 8.2,
                 biodegradable: 85,
                 composition: {
                   materials: [
                     { name: "Recycled Paper", percentage: 60, isEcoFriendly: true, recyclable: true },
-                    { name: "Organic Ingredients", percentage: 35, isEcoFriendly: true, recyclable: false },
+                    { name: "Organic Millet", percentage: 35, isEcoFriendly: true, recyclable: false },
                     { name: "Natural Colors", percentage: 5, isEcoFriendly: true, recyclable: false }
                   ],
                   packaging: {
@@ -454,9 +455,35 @@ Only respond with the JSON, no additional text or markdown.`
                     wasteGeneration: "low" as const
                   }
                 }
+              },
+              {
+                name: "Too Yumm Veggie Stix",
+                grade: "B" as const,
+                amazonSearch: "too yumm veggie stix healthy",
+                flipkartSearch: "too yumm veggie stix",
+                carbonFootprint: 12,
+                biodegradable: 70,
+                composition: {
+                  materials: [
+                    { name: "Vegetable Blend", percentage: 50, isEcoFriendly: true, recyclable: false },
+                    { name: "Recyclable Packaging", percentage: 30, isEcoFriendly: true, recyclable: true },
+                    { name: "Natural Seasoning", percentage: 20, isEcoFriendly: true, recyclable: false }
+                  ],
+                  packaging: {
+                    type: "Paper Bag",
+                    recyclable: true,
+                    biodegradable: true
+                  },
+                  certifications: ["Vegan"],
+                  environmentalImpact: {
+                    waterUsage: "low" as const,
+                    energyConsumption: "medium" as const,
+                    wasteGeneration: "low" as const
+                  }
+                }
               }
             ],
-            _notice: "This is sample data shown because AI credits are temporarily unavailable. Sign up for full analysis!"
+            _notice: "This is sample data shown because AI credits are temporarily unavailable. Your credits will replenish soon!"
           };
           
           return new Response(
@@ -465,14 +492,12 @@ Only respond with the JSON, no additional text or markdown.`
           );
         }
         
-        // For authenticated users or non-credit issues, return the error
+        // For non-credit 402 issues, return generic error
         return new Response(
           JSON.stringify({
             success: false,
-            error: outOfCredits
-              ? 'AI credits are exhausted. Please add credits and try again.'
-              : 'Service temporarily unavailable. Please try again later.',
-            code: outOfCredits ? 'credits_exhausted' : 'payment_required',
+            error: 'Service temporarily unavailable. Please try again later.',
+            code: 'payment_required',
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
