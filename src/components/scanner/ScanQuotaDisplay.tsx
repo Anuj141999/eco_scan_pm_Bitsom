@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Clock, Zap, Database } from "lucide-react";
+import { Leaf, Zap, Database } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,14 +32,6 @@ export function ScanQuotaDisplay({
     if (isExhausted) return "bg-destructive";
     if (isLow) return "bg-amber-500";
     return "bg-eco-leaf";
-  };
-
-  const formatResetTime = () => {
-    if (!resetDate) return "";
-    const now = new Date();
-    const hoursLeft = Math.ceil((resetDate.getTime() - now.getTime()) / (1000 * 60 * 60));
-    if (hoursLeft <= 1) return t("resetsInLessThanHour", "Resets in < 1 hour");
-    return t("resetsInHours", { hours: hoursLeft, defaultValue: `Resets in ${hoursLeft}h` });
   };
 
   return (
@@ -114,27 +106,22 @@ export function ScanQuotaDisplay({
           />
         </div>
 
-        {/* Reset time and warning */}
-        <div className="flex items-center justify-between mt-2">
-          {resetDate && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="w-3 h-3" />
-              {formatResetTime()}
-            </div>
-          )}
-          
-          {isLow && !isExhausted && (
-            <p className="text-xs text-amber-600">
-              {t("lowQuotaWarning", "Running low on scans")}
-            </p>
-          )}
-          
-          {isExhausted && (
-            <p className="text-xs text-destructive font-medium">
-              {t("quotaExhausted", "Daily limit reached")}
-            </p>
-          )}
-        </div>
+        {/* Warning messages */}
+        {(isLow || isExhausted) && (
+          <div className="flex items-center justify-end mt-2">
+            {isLow && !isExhausted && (
+              <p className="text-xs text-amber-600">
+                {t("lowQuotaWarning", "Running low on scans")}
+              </p>
+            )}
+            
+            {isExhausted && (
+              <p className="text-xs text-destructive font-medium">
+                {t("quotaExhausted", "Daily limit reached")}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );
