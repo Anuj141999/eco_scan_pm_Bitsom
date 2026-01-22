@@ -118,6 +118,15 @@ export function useScanQuota() {
     });
   }, []);
 
+  const resetQuota = useCallback(() => {
+    localStorage.removeItem(QUOTA_STORAGE_KEY);
+    setQuota(prev => ({
+      ...prev,
+      used: 0,
+      remaining: prev.limit,
+    }));
+  }, []);
+
   const canScan = useCallback(() => {
     return quota.remaining > 0;
   }, [quota.remaining]);
@@ -129,6 +138,7 @@ export function useScanQuota() {
   return {
     quota,
     incrementUsage,
+    resetQuota,
     canScan,
     getQuotaPercentage,
     isLoading: isAuthenticated === null,
