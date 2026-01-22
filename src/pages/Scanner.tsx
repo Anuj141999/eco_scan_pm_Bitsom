@@ -27,7 +27,7 @@ const Scanner = () => {
   
   // Hooks for caching and quota management
   const { getCachedResult, cacheResult, getCacheStats } = useScanCache();
-  const { quota, incrementUsage, canScan, isLoading: quotaLoading } = useScanQuota();
+  const { quota, incrementUsage, resetQuota, canScan, isLoading: quotaLoading } = useScanQuota();
   
   // State management
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -68,6 +68,29 @@ const Scanner = () => {
   useEffect(() => {
     sessionStorage.setItem('scanCount', quota.used.toString());
   }, [quota.used]);
+
+  // If quota becomes available again, hide the limit warning UI
+  useEffect(() => {
+    if (!quotaLoading && quota.remaining > 0 && showLimitWarning) {
+      setShowLimitWarning(false);
+    }
+  }, [quotaLoading, quota.remaining, showLimitWarning]);
+
+  // One-time quota reset helper (for testing/support): /scanner?resetQuota=true
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const shouldReset = searchParams.get("resetQuota") === "true";
+    if (!shouldReset) return;
+
+    resetQuota();
+    setShowLimitWarning(false);
+
+    // Remove the param so it doesn't keep resetting on every render/refresh
+    searchParams.delete("resetQuota");
+    const qs = searchParams.toString();
+    const nextUrl = `${location.pathname}${qs ? `?${qs}` : ""}`;
+    window.history.replaceState(null, "", nextUrl);
+  }, [location.pathname, location.search, resetQuota]);
 
   // Check auth status on mount to determine demo mode
   useEffect(() => {
