@@ -6,14 +6,18 @@ import { ImageUploader } from "@/components/scanner/ImageUploader";
 import { EcoScoreCard, EcoScore, ProductSuggestion } from "@/components/scanner/EcoScoreCard";
 import { ProductComposition } from "@/components/scanner/ProductDetailsModal";
 import { CreditsExhaustedModal } from "@/components/scanner/CreditsExhaustedModal";
+import { ScanQuotaDisplay } from "@/components/scanner/ScanQuotaDisplay";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, AlertCircle, ScanLine, Leaf, Sparkles } from "lucide-react";
+import { AlertCircle, ScanLine, Leaf, Sparkles, WifiOff } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useScanCache } from "@/hooks/useScanCache";
+import { useScanQuota } from "@/hooks/useScanQuota";
+import { getRandomFallbackProduct } from "@/data/fallbackProducts";
 
 const Scanner = () => {
   const { t } = useTranslation();
@@ -21,11 +25,11 @@ const Scanner = () => {
   const { playSuccessSound } = useSoundEffects();
   const location = useLocation();
   
-  // Restore state from sessionStorage on mount
-  const [scanCount, setScanCount] = useState(() => {
-    const saved = sessionStorage.getItem('scanCount');
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  // Hooks for caching and quota management
+  const { getCachedResult, cacheResult, getCacheStats } = useScanCache();
+  const { quota, incrementUsage, canScan, isLoading: quotaLoading } = useScanQuota();
+  
+  // State management
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<EcoScore | null>(() => {
     const saved = sessionStorage.getItem('scanResult');
@@ -40,6 +44,8 @@ const Scanner = () => {
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [backendErrorCode, setBackendErrorCode] = useState<string | null>(null);
   const [isFallbackData, setIsFallbackData] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [usedCache, setUsedCache] = useState(false);
   const lastImageRef = useRef<string | null>(null);
 
   // Persist result and suggestions to sessionStorage
@@ -59,9 +65,10 @@ const Scanner = () => {
     }
   }, [suggestions]);
 
+  // Sync quota with session storage for backward compatibility
   useEffect(() => {
-    sessionStorage.setItem('scanCount', scanCount.toString());
-  }, [scanCount]);
+    sessionStorage.setItem('scanCount', quota.used.toString());
+  }, [quota.used]);
 
   // Check auth status on mount to determine demo mode
   useEffect(() => {
@@ -76,7 +83,7 @@ const Scanner = () => {
 
     checkAuthStatus();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const searchParams = new URLSearchParams(location.search);
       const demoParam = searchParams.get("demo") === "true";
       setIsDemo(!session || demoParam);
@@ -88,7 +95,8 @@ const Scanner = () => {
   const maxScans = isDemo ? 3 : 30;
 
   const handleImageCapture = async (imageData: string) => {
-    if (scanCount >= maxScans) {
+    // Check quota first
+    if (!canScan()) {
       setShowLimitWarning(true);
       return;
     }
@@ -96,11 +104,27 @@ const Scanner = () => {
     // Store image for potential retry
     lastImageRef.current = imageData;
 
+    // Check cache first - instant and free!
+    const cached = getCachedResult(imageData);
+    if (cached) {
+      setResult(cached.result);
+      setSuggestions(cached.suggestions);
+      setUsedCache(true);
+      playSuccessSound();
+      toast({
+        title: t("cachedResult", "Cached Result"),
+        description: t("cachedResultDesc", "Retrieved from cache - no credits used!"),
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     setResult(null);
     setSuggestions([]);
     setBackendErrorCode(null);
     setIsFallbackData(false);
+    setUsedCache(false);
+    setIsOfflineMode(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
@@ -128,8 +152,18 @@ const Scanner = () => {
         const isCredits = status === 402 && /credits|payment_required|not enough/i.test(raw);
 
         if (isCredits) {
-          // Show dedicated modal for credits issue
-          setShowCreditsModal(true);
+          // Use offline fallback mode instead of blocking the user
+          console.log('Credits exhausted - using offline fallback mode');
+          const fallback = getRandomFallbackProduct();
+          setResult(fallback.result);
+          setSuggestions(fallback.suggestions);
+          setIsOfflineMode(true);
+          setIsFallbackData(true);
+          playSuccessSound();
+          toast({
+            title: t("offlineModeActive", "Offline Mode"),
+            description: t("offlineModeDesc", "Using local analysis - no credits consumed"),
+          });
           setIsAnalyzing(false);
           return;
         }
@@ -149,8 +183,19 @@ const Scanner = () => {
       if (data?.error) {
         const isCredits = data.code === 'credits_exhausted' || /credits|payment_required/i.test(data.error);
         if (isCredits) {
+          // Use offline fallback mode instead of blocking the user
+          console.log('Credits exhausted (from data) - using offline fallback mode');
+          const fallback = getRandomFallbackProduct();
+          setResult(fallback.result);
+          setSuggestions(fallback.suggestions);
+          setIsOfflineMode(true);
+          setIsFallbackData(true);
           setBackendErrorCode(data.code || 'credits_exhausted');
-          setShowCreditsModal(true);
+          playSuccessSound();
+          toast({
+            title: t("offlineModeActive", "Offline Mode"),
+            description: t("offlineModeDesc", "Using local analysis - no credits consumed"),
+          });
           setIsAnalyzing(false);
           return;
         }
@@ -198,7 +243,12 @@ const Scanner = () => {
 
       setResult(score);
       setSuggestions(productSuggestions);
-      setScanCount((prev) => prev + 1);
+      incrementUsage();
+      
+      // Cache successful results for future use
+      if (lastImageRef.current) {
+        cacheResult(lastImageRef.current, score, productSuggestions);
+      }
 
       playSuccessSound();
 
@@ -267,30 +317,22 @@ const Scanner = () => {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4">
               {t('ecoScanner').split(' ')[0]} <span className="text-gradient-eco">{t('scanner')}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+            <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
               {t('scannerDescription')}
             </p>
             
-            {/* Scan Counter */}
-            <motion.div 
-              className="mt-6 inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl glass-card shadow-card border border-border/50"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="w-8 h-8 rounded-xl eco-gradient flex items-center justify-center">
-                <Leaf className="w-4 h-4 text-primary-foreground" />
-              </div>
-              {isDemo === null ? (
-                <span className="text-sm text-muted-foreground">{t('loading')}</span>
-              ) : (
-                <span className="text-sm font-medium">
-                  <span className="text-eco-leaf font-bold">{scanCount}</span>
-                  <span className="text-muted-foreground"> / {maxScans} {t('scansUsed')}</span>
-                  {isDemo && <span className="text-eco-lime ml-2">({t('demo')})</span>}
-                </span>
-              )}
-            </motion.div>
+            {/* Scan Quota Display */}
+            {!quotaLoading && (
+              <ScanQuotaDisplay
+                used={quota.used}
+                limit={quota.limit}
+                remaining={quota.remaining}
+                isDemo={quota.isDemo}
+                resetDate={quota.resetDate}
+                cachedScans={getCacheStats().cachedScans}
+                isOfflineMode={isOfflineMode}
+              />
+            )}
           </motion.div>
 
           {/* Backend Error Banner */}
@@ -333,7 +375,7 @@ const Scanner = () => {
             )}
           </AnimatePresence>
 
-          {/* Demo Fallback Notice */}
+          {/* Offline/Fallback Mode Notice */}
           <AnimatePresence>
             {isFallbackData && (
               <motion.div
@@ -342,19 +384,35 @@ const Scanner = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="mb-6"
               >
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400">
-                  <Sparkles className="w-5 h-5 flex-shrink-0" />
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
+                  isOfflineMode 
+                    ? 'bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400'
+                    : 'bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400'
+                }`}>
+                  {isOfflineMode ? (
+                    <WifiOff className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <Sparkles className="w-5 h-5 flex-shrink-0" />
+                  )}
                   <div className="flex-1 text-sm">
-                    <span className="font-semibold">{t('demoFallbackTitle', 'Demo Preview')}: </span>
-                    <span className="text-muted-foreground">
-                      {t('demoFallbackDesc', 'This is sample data to show how the scanner works. Sign up for real AI-powered analysis!')}
+                    <span className="font-semibold">
+                      {isOfflineMode 
+                        ? t('offlineModeTitle', 'Offline Mode') 
+                        : t('demoFallbackTitle', 'Demo Preview')}: 
+                    </span>
+                    <span className="text-muted-foreground ml-1">
+                      {isOfflineMode 
+                        ? t('offlineModeNotice', 'Using local analysis while AI credits replenish. No credits consumed!')
+                        : t('demoFallbackDesc', 'This is sample data to show how the scanner works. Sign up for real AI-powered analysis!')}
                     </span>
                   </div>
-                  <Link to="/auth?mode=signup">
-                    <Button variant="eco" size="sm" className="h-7">
-                      {t('signUpNow')}
-                    </Button>
-                  </Link>
+                  {!isOfflineMode && (
+                    <Link to="/auth?mode=signup">
+                      <Button variant="eco" size="sm" className="h-7">
+                        {t('signUpNow')}
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             )}
