@@ -6,45 +6,70 @@ interface FallbackProduct {
   suggestions: ProductSuggestion[];
 }
 
-// Diverse fallback products for different scenarios
-const fallbackProducts: FallbackProduct[] = [
-  {
-    result: {
-      grade: 'C',
-      productName: 'Packaged Snack Product',
-      category: 'Food & Beverages',
-      carbonFootprint: 18,
-      biodegradable: 35,
-      composition: {
-        materials: [
-          { name: 'Plastic Film', percentage: 30, isEcoFriendly: false, recyclable: false },
-          { name: 'Processed Ingredients', percentage: 55, isEcoFriendly: false, recyclable: false },
-          { name: 'Natural Flavoring', percentage: 15, isEcoFriendly: true, recyclable: false },
-        ],
-        packaging: { type: 'Plastic Wrapper', recyclable: false, biodegradable: false },
-        certifications: [],
-        environmentalImpact: { waterUsage: 'medium', energyConsumption: 'medium', wasteGeneration: 'high' },
-      } as ProductComposition,
-    },
-    suggestions: [
-      {
-        name: 'Slurrp Farm Millet Puffs',
-        grade: 'A',
-        amazonLink: 'https://www.amazon.in/s?k=slurrp+farm+millet+puffs',
-        flipkartLink: 'https://www.flipkart.com/search?q=slurrp+farm+millet+puffs',
-        carbonFootprint: 8,
-        biodegradable: 85,
-      },
-      {
-        name: 'Too Yumm Veggie Stix',
-        grade: 'B',
-        amazonLink: 'https://www.amazon.in/s?k=too+yumm+veggie+stix',
-        flipkartLink: 'https://www.flipkart.com/search?q=too+yumm+veggie+stix',
-        carbonFootprint: 12,
-        biodegradable: 70,
-      },
-    ],
+// Demo fallback product - simple sample
+const demoFallbackProduct: FallbackProduct = {
+  result: {
+    grade: 'C',
+    productName: 'Sample Product',
+    category: 'Demo',
+    carbonFootprint: 18,
+    biodegradable: 35,
+    composition: {
+      materials: [
+        { name: 'Plastic Film', percentage: 30, isEcoFriendly: false, recyclable: false },
+        { name: 'Processed Ingredients', percentage: 55, isEcoFriendly: false, recyclable: false },
+        { name: 'Natural Flavoring', percentage: 15, isEcoFriendly: true, recyclable: false },
+      ],
+      packaging: { type: 'Plastic Wrapper', recyclable: false, biodegradable: false },
+      certifications: [],
+      environmentalImpact: { waterUsage: 'medium', energyConsumption: 'medium', wasteGeneration: 'high' },
+    } as ProductComposition,
   },
+  suggestions: [],
+};
+
+// Authenticated user fallback product
+const authenticatedFallbackProduct: FallbackProduct = {
+  result: {
+    grade: 'D',
+    productName: 'Pancake (Plastic wrap)',
+    category: 'Food & Beverages',
+    carbonFootprint: 22,
+    biodegradable: 25,
+    composition: {
+      materials: [
+        { name: 'Plastic Wrap', percentage: 40, isEcoFriendly: false, recyclable: false },
+        { name: 'Processed Flour', percentage: 35, isEcoFriendly: false, recyclable: false },
+        { name: 'Natural Ingredients', percentage: 25, isEcoFriendly: true, recyclable: false },
+      ],
+      packaging: { type: 'Plastic Wrapper', recyclable: false, biodegradable: false },
+      certifications: [],
+      environmentalImpact: { waterUsage: 'medium', energyConsumption: 'medium', wasteGeneration: 'high' },
+    } as ProductComposition,
+  },
+  suggestions: [
+    {
+      name: 'Organic Whole Wheat Pancake Mix',
+      grade: 'A',
+      amazonLink: 'https://www.amazon.in/s?k=organic+whole+wheat+pancake+mix',
+      flipkartLink: 'https://www.flipkart.com/search?q=organic+whole+wheat+pancake+mix',
+      carbonFootprint: 8,
+      biodegradable: 85,
+    },
+    {
+      name: 'Paper-Wrapped Eco Pancakes',
+      grade: 'S',
+      amazonLink: 'https://www.amazon.in/s?k=eco+friendly+pancake',
+      flipkartLink: 'https://www.flipkart.com/search?q=eco+friendly+pancake',
+      carbonFootprint: 5,
+      biodegradable: 95,
+    },
+  ],
+};
+
+// Diverse fallback products for authenticated users
+const fallbackProducts: FallbackProduct[] = [
+  authenticatedFallbackProduct,
   {
     result: {
       grade: 'D',
@@ -161,8 +186,13 @@ const fallbackProducts: FallbackProduct[] = [
 // Keep track of which fallback was last used
 let lastFallbackIndex = -1;
 
-export function getRandomFallbackProduct(): FallbackProduct {
-  // Rotate through fallbacks to provide variety
+export function getRandomFallbackProduct(isDemo: boolean = false): FallbackProduct {
+  // For demo mode, always return the simple sample product
+  if (isDemo) {
+    return demoFallbackProduct;
+  }
+  
+  // For authenticated users, rotate through fallbacks to provide variety
   lastFallbackIndex = (lastFallbackIndex + 1) % fallbackProducts.length;
   return fallbackProducts[lastFallbackIndex];
 }
