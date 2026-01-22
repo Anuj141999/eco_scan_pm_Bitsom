@@ -375,48 +375,6 @@ const Scanner = () => {
             )}
           </AnimatePresence>
 
-          {/* Offline/Fallback Mode Notice */}
-          <AnimatePresence>
-            {isFallbackData && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6"
-              >
-                <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
-                  isOfflineMode 
-                    ? 'bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400'
-                    : 'bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400'
-                }`}>
-                  {isOfflineMode ? (
-                    <WifiOff className="w-5 h-5 flex-shrink-0" />
-                  ) : (
-                    <Sparkles className="w-5 h-5 flex-shrink-0" />
-                  )}
-                  <div className="flex-1 text-sm">
-                    <span className="font-semibold">
-                      {isOfflineMode 
-                        ? t('offlineModeTitle', 'Offline Mode') 
-                        : t('demoFallbackTitle', 'Demo Preview')}: 
-                    </span>
-                    <span className="text-muted-foreground ml-1">
-                      {isOfflineMode 
-                        ? t('offlineModeNotice', 'Using local analysis while AI credits replenish. No credits consumed!')
-                        : t('demoFallbackDesc', 'This is sample data to show how the scanner works. Sign up for real AI-powered analysis!')}
-                    </span>
-                  </div>
-                  {!isOfflineMode && (
-                    <Link to="/auth?mode=signup">
-                      <Button variant="eco" size="sm" className="h-7">
-                        {t('signUpNow')}
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Limit Warning */}
           <AnimatePresence>
