@@ -404,7 +404,7 @@ Only respond with the JSON, no additional text or markdown.`
         if (outOfCredits) {
           console.log(`Credits exhausted for ${isDemo ? 'demo' : 'authenticated'} user - returning sample fallback data`);
           const sampleResult = {
-            productName: "Sample Product (Offline Mode)",
+            productName: "Sample Product",
             category: "Food & Beverages",
             grade: "C" as const,
             carbonFootprint: 18.5,
