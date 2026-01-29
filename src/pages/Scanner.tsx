@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useScanCache } from "@/hooks/useScanCache";
 import { useScanQuota } from "@/hooks/useScanQuota";
-import { getRandomFallbackProduct } from "@/data/fallbackProducts";
+
 
 const Scanner = () => {
   const { t } = useTranslation();
@@ -43,7 +43,7 @@ const Scanner = () => {
   const [isDemo, setIsDemo] = useState<boolean | null>(null);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [backendErrorCode, setBackendErrorCode] = useState<string | null>(null);
-  const [isFallbackData, setIsFallbackData] = useState(false);
+  
   const [usedCache, setUsedCache] = useState(false);
   const lastImageRef = useRef<string | null>(null);
 
@@ -144,7 +144,6 @@ const Scanner = () => {
     setResult(null);
     setSuggestions([]);
     setBackendErrorCode(null);
-    setIsFallbackData(false);
     setUsedCache(false);
 
     try {
@@ -173,13 +172,7 @@ const Scanner = () => {
         const isCredits = status === 402 && /credits|payment_required|not enough/i.test(raw);
 
         if (isCredits) {
-          // Use fallback mode instead of blocking the user
-          console.log('Credits exhausted - using fallback mode');
-          const fallback = getRandomFallbackProduct(isDemo ?? true);
-          setResult(fallback.result);
-          setSuggestions(fallback.suggestions);
-          setIsFallbackData(true);
-          playSuccessSound();
+          setShowCreditsModal(true);
           setIsAnalyzing(false);
           return;
         }
@@ -199,14 +192,8 @@ const Scanner = () => {
       if (data?.error) {
         const isCredits = data.code === 'credits_exhausted' || /credits|payment_required/i.test(data.error);
         if (isCredits) {
-          // Use fallback mode instead of blocking the user
-          console.log('Credits exhausted (from data) - using fallback mode');
-          const fallback = getRandomFallbackProduct(isDemo ?? true);
-          setResult(fallback.result);
-          setSuggestions(fallback.suggestions);
-          setIsFallbackData(true);
+          setShowCreditsModal(true);
           setBackendErrorCode(data.code || 'credits_exhausted');
-          playSuccessSound();
           setIsAnalyzing(false);
           return;
         }
@@ -227,10 +214,6 @@ const Scanner = () => {
       const serverIsDemo = data.isDemo ?? true;
       setIsDemo(serverIsDemo);
       
-      // Check if this is fallback demo data
-      if (data.isFallback) {
-        setIsFallbackData(true);
-      }
 
       const score: EcoScore = {
         grade: data.grade,
