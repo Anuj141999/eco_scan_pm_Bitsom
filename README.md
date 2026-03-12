@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**URL**: https://lovable.dev/projects/aece6cbe-f5e4-4fdb-aa95-a52c22522ad9
 
 ## How can I edit this code?
 
